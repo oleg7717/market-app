@@ -1,0 +1,19 @@
+package ru.goncharenko.market.order.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.goncharenko.market.item.dto.ItemInOrderDTO;
+
+import java.util.List;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderDTO {
+	private Long id;
+	private List<ItemInOrderDTO> items;
+	private Long totalSum;
+}
