@@ -60,13 +60,19 @@ public class ItemService {
 	}
 
 	@Transactional
-	public ItemInCartDTO changeItemCountInCartFromItemsPage(long id, ActionEnum action) {
+	public ItemInCartDTO changeCountAndReturnItemInCart(long id, ActionEnum action) {
+		return mapper.itemInCart(changeItemCountInCart(id, action));
+	}
+
+	@Transactional
+	public Item changeItemCountInCart(long id, ActionEnum action) {
 		Item item = getItemById(id);
 		switch (action) {
 			case MINUS -> decreaseItemCount(item);
 			case PLUS -> increaseItemCount(item);
 		}
-		return mapper.itemInCart(item);
+
+		return item;
 	}
 
 	public ItemInCartDTO findById(long id) {
@@ -85,7 +91,7 @@ public class ItemService {
 		if (cart.getCount() == 1) {
 			item.setItemInCart(null);
 		} else {
-			cart.decreaseCount();
+			cart.removeOne();
 		}
 	}
 
@@ -97,7 +103,7 @@ public class ItemService {
 			cart.setCount(1);
 			item.setItemInCart(cart);
 		} else {
-			cart.increaseCount();
+			cart.addOne();
 		}
 	}
 }

@@ -32,12 +32,12 @@ public class Cart {
 	@Positive
 	@Column(name = "count")
 	private long count;
-	//ToDo использовать Atomic для count
-	public void decreaseCount() {
+
+	public void removeOne() {
 		this.count--;
 	}
 
-	public void increaseCount() {
+	public void addOne() {
 		this.count++;
 	}
 }

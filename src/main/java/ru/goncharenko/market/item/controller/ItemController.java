@@ -41,17 +41,17 @@ public class ItemController {
 			@RequestParam(defaultValue = "5")
 				@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
 			@RequestParam ActionEnum action) {
-		service.changeItemCountInCartFromItemsPage(id, action);
+		service.changeItemCountInCart(id, action);
 		return String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d", search, sort, pageNumber, pageSize);
 	}
 
 	@GetMapping(path = "/items/{id}")
-	public ItemInCartDTO show(@PathVariable("id") long id) {
+	public ItemInCartDTO show(@PathVariable long id) {
 		return service.findById(id);
 	}
 
 	@PostMapping(path = "/items/{id}")
-	public ItemInCartDTO changeItemCountInCartFromItem(@PathVariable("id") long id, @RequestParam ActionEnum action) {
-		return service.changeItemCountInCartFromItemsPage(id, action);
+	public ItemInCartDTO changeItemCountInCartFromItem(@PathVariable long id, @RequestParam ActionEnum action) {
+		return service.changeCountAndReturnItemInCart(id, action);
 	}
 }

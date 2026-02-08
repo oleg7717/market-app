@@ -21,14 +21,13 @@ import ru.goncharenko.market.item.model.Item;
 @AllArgsConstructor
 public class OrderItem {
 	@Id
-	@ManyToOne
-	@JoinColumn(name = "order_id")
-	private Order order;
-
-	@Id
 	@OneToOne
 	@JoinColumn(name = "item_id")
 	private Item item;
+
+	@ManyToOne
+	@JoinColumn(name = "order_id")
+	private Order order;
 
 	@Column(name = "count")
 	private int count;
