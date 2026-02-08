@@ -6,6 +6,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import ru.goncharenko.market.item.dto.CartDTO;
+import ru.goncharenko.market.item.dto.ItemDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.item.model.Item;
 
@@ -19,16 +20,20 @@ import java.util.List;
 )
 public interface ItemMapper {
 	@Mapping(source = "itemInCart.count", target = "count")
-	ItemInCartDTO itemInCart(Item item);
+	ItemInCartDTO toItemInCart(Item item);
 
-	List<ItemInCartDTO> itemListInCart(List<Item> item);
+	List<ItemInCartDTO> toItemListInCart(List<Item> item);
+
+	default ItemDTO toItemDTO(Item item) {
+		return new ItemDTO(toItemInCart(item));
+	}
 
 	default CartDTO onlyItemsInCart(List<Item> items) {
 		if (items == null || items.isEmpty()) {
 			return new CartDTO(Collections.emptyList(), 0L);
 		}
 
-		List<ItemInCartDTO> itemInCartDTO = itemListInCart(items);
+		List<ItemInCartDTO> itemInCartDTO = toItemListInCart(items);
 		long total = itemInCartDTO.stream()
 				.mapToLong(itemInCart -> itemInCart.getPrice() * itemInCart.getCount())
 				.sum();

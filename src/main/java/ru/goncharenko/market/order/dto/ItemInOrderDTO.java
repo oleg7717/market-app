@@ -1,4 +1,4 @@
-package ru.goncharenko.market.item.dto;
+package ru.goncharenko.market.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

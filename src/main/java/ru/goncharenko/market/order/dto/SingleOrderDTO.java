@@ -1,17 +1,16 @@
-package ru.goncharenko.market.item.dto;
+package ru.goncharenko.market.order.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartDTO {
-	private List<ItemInCartDTO> items;
-	private long total;
+@Builder
+public class SingleOrderDTO {
+	private OrderDTO order;
 }

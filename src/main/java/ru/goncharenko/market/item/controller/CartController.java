@@ -11,7 +11,7 @@ import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.service.CartService;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping(path = "/cart")
 @RequiredArgsConstructor
 public class CartController {
 	private final CartService service;

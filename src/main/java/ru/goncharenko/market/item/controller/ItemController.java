@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.core.types.SortEnum;
-import ru.goncharenko.market.item.dto.ItemInCartDTO;
-import ru.goncharenko.market.core.response.PageableApiResponse;
+import ru.goncharenko.market.item.dto.ItemDTO;
+import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.item.service.ItemService;
 
 @RestController
@@ -20,8 +20,8 @@ import ru.goncharenko.market.item.service.ItemService;
 public class ItemController {
 	private final ItemService service;
 
-	@GetMapping({"/items", ""})
-	public PageableApiResponse index(
+	@GetMapping(path = {"/items", ""})
+	public ListItemsDTO index(
 			@RequestParam(required = false) String search,
 			@RequestParam(defaultValue = "NO") SortEnum sort,
 			@RequestParam(defaultValue = "1")
@@ -46,12 +46,12 @@ public class ItemController {
 	}
 
 	@GetMapping(path = "/items/{id}")
-	public ItemInCartDTO show(@PathVariable long id) {
+	public ItemDTO show(@PathVariable long id) {
 		return service.findById(id);
 	}
 
 	@PostMapping(path = "/items/{id}")
-	public ItemInCartDTO changeItemCountInCartFromItem(@PathVariable long id, @RequestParam ActionEnum action) {
+	public ItemDTO changeItemCountInCartFromItem(@PathVariable long id, @RequestParam ActionEnum action) {
 		return service.changeCountAndReturnItemInCart(id, action);
 	}
 }

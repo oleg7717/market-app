@@ -25,6 +25,7 @@ CREATE TABLE if not exists orders (
 );
 
 CREATE TABLE if not exists order_item (
+   id BIGSERIAL NOT NULL,
    order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
    item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
    count INTEGER NOT NULL,

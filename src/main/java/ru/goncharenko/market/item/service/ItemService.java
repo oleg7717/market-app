@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.goncharenko.market.core.types.ActionEnum;
+import ru.goncharenko.market.item.dto.ItemDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.core.exception.ResourceNotFoundException;
 import ru.goncharenko.market.core.types.SortEnum;
@@ -15,7 +16,7 @@ import ru.goncharenko.market.item.mapper.ItemMapper;
 import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.ItemRepository;
-import ru.goncharenko.market.core.response.PageableApiResponse;
+import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.core.response.Paging;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class ItemService {
 	private final ItemRepository repository;
 	private final ItemMapper mapper;
 
-	public PageableApiResponse getItems(String search, SortEnum sort, int pageNumber, int pageSize) {
+	public ListItemsDTO getItems(String search, SortEnum sort, int pageNumber, int pageSize) {
 		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(sort.getFieldName()));
 		Page<Item> page;
 		if (search == null || search.isEmpty()) {
@@ -48,10 +49,10 @@ public class ItemService {
 				group.add(new Item(-1));
 			}
 
-			itemsInCart.add(mapper.itemListInCart(group));
+			itemsInCart.add(mapper.toItemListInCart(group));
 		}
 
-		return PageableApiResponse.builder()
+		return ListItemsDTO.builder()
 				.items(itemsInCart)
 				.search(search)
 				.sort(sort)
@@ -60,8 +61,9 @@ public class ItemService {
 	}
 
 	@Transactional
-	public ItemInCartDTO changeCountAndReturnItemInCart(long id, ActionEnum action) {
-		return mapper.itemInCart(changeItemCountInCart(id, action));
+	public ItemDTO changeCountAndReturnItemInCart(long id, ActionEnum action) {
+		Item item = changeItemCountInCart(id, action);
+		return mapper.toItemDTO(item);
 	}
 
 	@Transactional
@@ -75,8 +77,8 @@ public class ItemService {
 		return item;
 	}
 
-	public ItemInCartDTO findById(long id) {
-		return mapper.itemInCart(getItemById(id));
+	public ItemDTO findById(long id) {
+		return mapper.toItemDTO(getItemById(id));
 	}
 
 	private Item getItemById(long id) {
