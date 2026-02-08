@@ -21,6 +21,7 @@ import java.util.List;
 )
 public interface OrderMapper {
 	@Mapping(source = "orderItems", target = "items")
+	@Mapping(target = "newOrder", ignore = true)
 	OrderDTO toOrderDto(Order order);
 
 	default ListOrdersDTO ordersToListOrderDTO(List<Order> orders) {

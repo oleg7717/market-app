@@ -1,6 +1,5 @@
 package ru.goncharenko.market.order.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +15,5 @@ public class OrderDTO {
 	private Long id;
 	private List<ItemInOrderDTO> items;
 	private Long totalSum;
-	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String newOrder;
 }
