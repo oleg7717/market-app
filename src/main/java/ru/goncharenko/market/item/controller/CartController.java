@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.service.CartService;
@@ -17,12 +18,22 @@ public class CartController {
 	private final CartService service;
 
 	@GetMapping(path = "/items")
-	public CartDTO show() {
-		return service.getItemsInCart();
+	public ModelAndView show() {
+		CartDTO cartDTO = service.getItemsInCart();
+		ModelAndView modelAndView = new ModelAndView("cart");
+		modelAndView.addObject("items", cartDTO.getItems());
+		modelAndView.addObject("total", cartDTO.getTotal());
+
+		return modelAndView;
 	}
 
 	@PostMapping(path = "/items")
-	public CartDTO changeItemsCountFromCart(@RequestParam long id, @RequestParam ActionEnum action) {
-		return service.changeItemsCountFromCart(id, action);
+	public ModelAndView changeItemsCountFromCart(@RequestParam long id, @RequestParam ActionEnum action) {
+		CartDTO cartDTO =  service.changeItemsCountFromCart(id, action);
+		ModelAndView modelAndView = new ModelAndView("cart");
+		modelAndView.addObject("items", cartDTO.getItems());
+		modelAndView.addObject("total", cartDTO.getTotal());
+
+		return modelAndView;
 	}
 }

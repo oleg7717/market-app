@@ -14,4 +14,20 @@ public class ItemInOrderDTO {
 	String title;
 	long price;
 	int count;
+
+	public String title() {
+		return title;
+	}
+
+	public long id() {
+		return id;
+	}
+
+	public long price() {
+		return price;
+	}
+
+	public int count() {
+		return count;
+	}
 }

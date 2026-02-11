@@ -10,4 +10,21 @@ public class Paging {
 	private int pageSize;
 	private boolean hasPrev;
 	private boolean hasNext;
+
+	public int pageNumber() {
+		return pageNumber;
+	}
+
+	public int pageSize() {
+		return pageSize;
+	}
+
+	public boolean hasPrevious() {
+		return hasPrev;
+	}
+
+	public boolean hasNext() {
+		return hasNext;
+	}
+
 }

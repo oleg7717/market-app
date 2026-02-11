@@ -54,8 +54,6 @@ public class ItemService {
 
 		return ListItemsDTO.builder()
 				.items(itemsInCart)
-				.search(search)
-				.sort(sort)
 				.paging(new Paging(pageNumber, pageSize, pageNumber > 1, page.hasNext()))
 				.build();
 	}

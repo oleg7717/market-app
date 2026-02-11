@@ -16,4 +16,20 @@ public class OrderDTO {
 	private List<ItemInOrderDTO> items;
 	private Long totalSum;
 	private String newOrder;
+
+	public Long id() {
+		return id;
+	}
+
+	public List<ItemInOrderDTO> items() {
+		return items;
+	}
+
+	public Long totalSum() {
+		return totalSum;
+	}
+
+	public String newOrder() {
+		return newOrder;
+	}
 }

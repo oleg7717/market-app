@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.goncharenko.market.core.response.ApiResponse;
 import ru.goncharenko.market.core.response.Paging;
-import ru.goncharenko.market.core.types.SortEnum;
 
 import java.util.List;
 
@@ -14,8 +13,6 @@ import java.util.List;
 @Builder
 public class ListItemsDTO implements ApiResponse {
 	private List<List<ItemInCartDTO>> items;
-	private String search;
-	private SortEnum sort;
 	private Paging paging;
 }
 
