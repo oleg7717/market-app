@@ -50,8 +50,13 @@ public class ItemController {
 			@RequestParam(defaultValue = "5")
 				@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
 			@RequestParam ActionEnum action) {
-//		service.changeItemCountInCart(id, action);
-		return new ModelAndView(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d", search, sort, pageNumber, pageSize));
+		service.changeItemCountInCart(id, action);
+		return new ModelAndView(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
+				search,
+				sort,
+				pageNumber,
+				pageSize)
+		);
 	}
 
 	@GetMapping(path = "/items/{id}")
