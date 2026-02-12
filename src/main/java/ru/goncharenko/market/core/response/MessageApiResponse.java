@@ -15,11 +15,4 @@ public class MessageApiResponse implements ApiResponse {
 				.statusCode(statusCode)
 				.build();
 	}
-
-	public static MessageApiResponse success(String message) {
-		return MessageApiResponse.builder()
-				.message(message)
-				.statusCode(200)
-				.build();
-	}
 }

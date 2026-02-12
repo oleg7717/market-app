@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RepositoryTest extends IntegrationTest {
 	@Autowired
@@ -34,9 +33,9 @@ public class RepositoryTest extends IntegrationTest {
 		assertNotNull(pageData);
 		assertEquals(5, pageData.getContent().size());
 		Optional<Item> first = pageData.stream().findFirst();
-		assertNotNull(first.get());
+		assertTrue(first.isPresent());
 		first.ifPresent(item -> {
-			assertTrue(item.getId() == 3L);
+			assertEquals(3L, item.getId());
 			assertEquals("Книга \"Мастер и Маргарита\"", item.getTitle());
 		});
 	}
@@ -47,7 +46,7 @@ public class RepositoryTest extends IntegrationTest {
 
 		assertEquals(5, orders.size());
 		Optional<Order> orderFour = orders.stream().filter(u -> u.getId() == 4L).findFirst();
-		assertNotNull(orderFour.get());
-		assertTrue(orderFour.get().getOrderItems().size() == 4);
+		assertTrue(orderFour.isPresent());
+		assertEquals(4, orderFour.orElse(null).getOrderItems().size());
 	}
 }

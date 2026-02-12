@@ -1,20 +1,17 @@
 package ru.goncharenko.market;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.goncharenko.market.item.controller.ItemController;
@@ -27,13 +24,9 @@ import ru.goncharenko.market.item.service.ItemService;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(value = ItemRepository.class,
 		includeFilters = @ComponentScan.Filter(
@@ -42,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 		))
 @AutoConfigureMockMvc
 public class ItemControllerTest {
+	private static AutoCloseable closeable;
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -50,7 +45,7 @@ public class ItemControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		MockitoAnnotations.openMocks(this);
+		closeable = MockitoAnnotations.openMocks(this);
 	}
 
 	@Test
@@ -69,5 +64,10 @@ public class ItemControllerTest {
 		// Проверяем вызов метода поиска товаров
 		verify(repository, times(1))
 				.findByDescriptionOrTitleContainingIgnoreCase(anyString(), any(Pageable.class));
+	}
+
+	@AfterAll
+	static void closeUp() throws Exception {
+		closeable.close();
 	}
 }

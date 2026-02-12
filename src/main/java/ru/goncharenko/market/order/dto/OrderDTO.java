@@ -28,8 +28,4 @@ public class OrderDTO {
 	public Long totalSum() {
 		return totalSum;
 	}
-
-	public String newOrder() {
-		return newOrder;
-	}
 }
