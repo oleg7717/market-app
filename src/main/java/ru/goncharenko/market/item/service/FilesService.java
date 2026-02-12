@@ -15,14 +15,14 @@ import java.nio.file.Paths;
 @Component
 public class FilesService {
 	public static final String UPLOAD_DIR = "uploads"  + File.separator;
-	private static final String error_if_not_found = "Image file for post not found";
+	private static final String error_if_not_found = "Image file for item not found";
 
-	public Resource download(long postId) {
+	public Resource download(String filename) {
 		try {
-			Path uploadDir = Paths.get(UPLOAD_DIR + postId);
+			Path uploadDir = Paths.get(UPLOAD_DIR);
 			return new ByteArrayResource(Files
 					.readAllBytes(
-							FileUtils.findPath(uploadDir, postId)
+							FileUtils.findPath(uploadDir, filename)
 									.orElseThrow(() -> new ResourceNotFoundException(error_if_not_found))
 					)
 			);

@@ -1,5 +1,6 @@
 package ru.goncharenko.market.item.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +28,7 @@ import java.util.List;
 public class ItemService {
 	private final ItemRepository repository;
 	private final ItemMapper mapper;
+	private final HttpServletRequest request;
 
 	public ListItemsDTO getItems(String search, SortEnum sort, int pageNumber, int pageSize) {
 		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(sort.getFieldName()));
@@ -36,6 +38,11 @@ public class ItemService {
 		} else {
 			page = repository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable);
 		}
+
+		page.getContent().forEach(item -> {
+			String imageUrl = getBaseUrl(request) + item.getImgPath();
+			item.setImgPath(imageUrl);
+		});
 
 		int totalItems = page.getNumberOfElements();
 		int groupSize = Math.min(pageSize, 3);
@@ -80,8 +87,11 @@ public class ItemService {
 	}
 
 	private Item getItemById(long id) {
-		return repository.findById(id)
+		Item item = repository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Item with id: %s not found.", id)));
+		String imageUrl = getBaseUrl(request) + item.getImgPath();
+		item.setImgPath(imageUrl);
+		return item;
 	}
 
 	private void decreaseItemCount(Item item) {
@@ -105,5 +115,9 @@ public class ItemService {
 		} else {
 			cart.addOne();
 		}
+	}
+
+	private static String getBaseUrl(HttpServletRequest request) {
+		return "/" + request.getServerName() + ":" + request.getServerPort();
 	}
 }
