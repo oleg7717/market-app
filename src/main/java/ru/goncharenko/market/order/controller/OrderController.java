@@ -1,17 +1,17 @@
 package ru.goncharenko.market.order.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import ru.goncharenko.market.order.dto.ListOrdersDTO;
 import ru.goncharenko.market.order.dto.SingleOrderDTO;
 import ru.goncharenko.market.order.service.OrderService;
 
-@RestController
+@Controller
 @RequestMapping(path = "/orders")
 @RequiredArgsConstructor
 public class OrderController {

@@ -4,12 +4,12 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.core.types.SortEnum;
@@ -18,7 +18,7 @@ import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.item.service.FilesService;
 import ru.goncharenko.market.item.service.ItemService;
 
-@RestController
+@Controller
 @Validated
 @RequiredArgsConstructor
 public class ItemController {
