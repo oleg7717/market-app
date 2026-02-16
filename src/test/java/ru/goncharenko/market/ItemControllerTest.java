@@ -1,6 +1,5 @@
 package ru.goncharenko.market;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -19,6 +18,7 @@ import ru.goncharenko.market.item.mapper.ItemMapper;
 import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.ItemRepository;
+import ru.goncharenko.market.item.service.FilesService;
 import ru.goncharenko.market.item.service.ItemService;
 
 import java.util.Collections;
@@ -31,12 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ItemRepository.class,
 		includeFilters = @ComponentScan.Filter(
 				type = FilterType.ASSIGNABLE_TYPE,
-				classes = {ItemController.class, ItemService.class, ItemMapper.class}
+				classes = {ItemController.class, ItemService.class, ItemMapper.class, FilesService.class}
 		))
 @AutoConfigureMockMvc
 public class ItemControllerTest {
-	private static AutoCloseable closeable;
-
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -45,7 +43,7 @@ public class ItemControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		closeable = MockitoAnnotations.openMocks(this);
+		MockitoAnnotations.openMocks(this);
 	}
 
 	@Test
@@ -64,10 +62,5 @@ public class ItemControllerTest {
 		// Проверяем вызов метода поиска товаров
 		verify(repository, times(1))
 				.findByDescriptionOrTitleContainingIgnoreCase(anyString(), any(Pageable.class));
-	}
-
-	@AfterAll
-	static void closeUp() throws Exception {
-		closeable.close();
 	}
 }
