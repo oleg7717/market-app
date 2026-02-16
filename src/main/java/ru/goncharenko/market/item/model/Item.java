@@ -38,8 +38,8 @@ public class Item {
 	@Column(name = "price")
 	private long price;
 
-	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-	private Cart itemInCart;
+/*	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+	private CartItem itemInCart;*/
 
 	public Item(long id) {
 		this.id = id;

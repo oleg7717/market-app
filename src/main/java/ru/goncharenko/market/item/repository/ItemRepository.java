@@ -7,22 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.goncharenko.market.item.model.Item;
 
-import java.util.List;
-
 public interface ItemRepository extends JpaRepository<Item, Long> {
 	@Query("SELECT i " +
 			"FROM Item i " +
-			"LEFT JOIN FETCH i.itemInCart c " +
 			"WHERE i.description like %:description% or i.title like %:description%")
 	Page<Item> findByDescriptionOrTitleContainingIgnoreCase(String description, Pageable pageable);
 
 	@Query("SELECT i " +
-			"FROM Item i " +
-			"LEFT JOIN FETCH i.itemInCart c")
+			"FROM Item i")
 	Page<Item> findAll(@NonNull Pageable pageable);
-
-	@Query("SELECT i " +
-			"FROM Item i " +
-			"JOIN FETCH i.itemInCart c")
-	List<Item> itemsInCart();
 }

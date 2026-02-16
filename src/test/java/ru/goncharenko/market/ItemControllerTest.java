@@ -15,10 +15,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.goncharenko.market.item.controller.ItemController;
 import ru.goncharenko.market.item.mapper.ItemMapper;
-import ru.goncharenko.market.item.model.Cart;
+import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.ItemRepository;
-import ru.goncharenko.market.item.service.FilesService;
+import ru.goncharenko.market.item.service.FileService;
 import ru.goncharenko.market.item.service.ItemService;
 
 import java.util.Collections;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = ItemRepository.class,
 		includeFilters = @ComponentScan.Filter(
 				type = FilterType.ASSIGNABLE_TYPE,
-				classes = {ItemController.class, ItemService.class, ItemMapper.class, FilesService.class}
+				classes = {ItemController.class, ItemService.class, ItemMapper.class, FileService.class}
 		))
 @AutoConfigureMockMvc
 public class ItemControllerTest {
@@ -48,7 +48,7 @@ public class ItemControllerTest {
 
 	@Test
 	public void searchStringParse() throws Exception {
-		List<Item> userList = Collections.singletonList(new Item(1L, "Мяч футбольный Adidas", "", "",1L, new Cart()));
+		List<Item> userList = Collections.singletonList(new Item(1L, "Мяч футбольный Adidas", "", "",1L));
 		when(repository.findByDescriptionOrTitleContainingIgnoreCase(anyString(), any(Pageable.class)))
 				.thenReturn(new PageImpl<>(userList, PageRequest.of(0, 10), userList.size()));
 

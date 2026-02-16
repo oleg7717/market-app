@@ -29,7 +29,8 @@ public class CartController {
 
 	@PostMapping(path = "/items")
 	public ModelAndView changeItemsCountFromCart(@RequestParam long id, @RequestParam ActionEnum action) {
-		CartDTO cartDTO =  service.changeItemsCountFromCart(id, action);
+		/*CartDTO cartDTO =  */service.changeItemsCountFromCart(id, action);
+		CartDTO cartDTO = service.getItemsInCart();
 		ModelAndView modelAndView = new ModelAndView("cart");
 		modelAndView.addObject("items", cartDTO.getItems());
 		modelAndView.addObject("total", cartDTO.getTotal());

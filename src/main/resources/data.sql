@@ -12,13 +12,20 @@ insert into items (title, description, img_path, price) values
 ('Набор кухонных ножей', 'Набор из 6 ножей из нержавеющей стали с деревянной подставкой', '/images/kitchen_knives.jpg', 6500)
 on conflict do nothing;
 
-
 truncate carts restart identity cascade;
-insert into carts (item_id, count) values
-(4, 1),
-(10, 3),
-(3, 1),
-(1, 2)
+insert into carts (id, user_name) values
+(1, 'anonymous'),
+(2, 'user1')
+on conflict do nothing;
+
+truncate cart_item restart identity cascade;
+insert into cart_item (cart_id, item_id, count) values
+(1, 4, 1),
+(1, 10, 3),
+(1, 3, 1),
+(1, 1, 2),
+(2, 1, 3),
+(2, 3, 1)
 on conflict do nothing;
 
 

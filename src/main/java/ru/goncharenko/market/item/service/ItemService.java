@@ -9,40 +9,43 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.goncharenko.market.core.types.ActionEnum;
-import ru.goncharenko.market.item.dto.ItemDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.core.exception.ResourceNotFoundException;
 import ru.goncharenko.market.core.types.SortEnum;
-import ru.goncharenko.market.item.mapper.ItemMapper;
+import ru.goncharenko.market.item.mapper.CartItemMapper;
 import ru.goncharenko.market.item.model.Cart;
+import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
+import ru.goncharenko.market.item.repository.CartItemRepository;
+import ru.goncharenko.market.item.repository.CartRepository;
 import ru.goncharenko.market.item.repository.ItemRepository;
 import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.core.response.Paging;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ItemService {
-	private final ItemRepository repository;
-	private final ItemMapper mapper;
+	private final ItemRepository itemRepository;
+	private final CartRepository cartRepository;
+	private final CartItemRepository cartItemRepository;
+	private final CartItemMapper mapper;
 	private final HttpServletRequest request;
+	private final String userName = "anonymous";
 
 	public ListItemsDTO getItems(String search, SortEnum sort, int pageNumber, int pageSize) {
 		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(sort.getFieldName()));
 		Page<Item> page;
 		if (search == null || search.isEmpty()) {
-			page = repository.findAll(pageable);
+			page = itemRepository.findAll(pageable);
 		} else {
-			page = repository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable);
+			page = itemRepository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable);
 		}
 
-		page.getContent().forEach(item -> {
-			String imageUrl = getBaseUrl(request) + item.getImgPath();
-			item.setImgPath(imageUrl);
-		});
+		Cart cart = cartRepository.findAllByUserName(userName);
 
 		int totalItems = page.getNumberOfElements();
 		int groupSize = Math.min(pageSize, 3);
@@ -56,7 +59,13 @@ public class ItemService {
 				group.add(new Item(-1));
 			}
 
-			itemsInCart.add(mapper.toItemListInCart(group));
+			List<ItemInCartDTO> itemInCartDTO = mapper.toItemListInCart(group);
+			itemInCartDTO.forEach(item -> {
+				mapper.setCountToItem(cart, item);
+			});
+			mapper.setImgUrl(itemInCartDTO, request);
+
+			itemsInCart.add(itemInCartDTO);
 		}
 
 		return ListItemsDTO.builder()
@@ -66,58 +75,49 @@ public class ItemService {
 	}
 
 	@Transactional
-	public ItemDTO changeCountAndReturnItemInCart(long id, ActionEnum action) {
-		Item item = changeItemCountInCart(id, action);
-		return mapper.toItemDTO(item);
-	}
-
-	@Transactional
-	public Item changeItemCountInCart(long id, ActionEnum action) {
-		Item item = getItemById(id);
+	public void changeItemCountInCart(long id, ActionEnum action) {
+		Optional<CartItem> itemInCart = cartItemRepository.findItemInCartById(id, userName);
 		switch (action) {
-			case MINUS -> decreaseItemCount(item);
-			case PLUS -> increaseItemCount(item);
+			case MINUS -> decreaseItemCount(itemInCart.get());
+			case PLUS -> increaseItemCount(itemInCart, id);
 		}
-
-		return item;
 	}
 
-	public ItemDTO findById(long id) {
-		return mapper.toItemDTO(getItemById(id));
-	}
-
-	private Item getItemById(long id) {
-		Item item = repository.findById(id)
+	public ItemInCartDTO findById(long id) {
+		Item item = itemRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Item with id: %s not found.", id)));
-		String imageUrl = getBaseUrl(request) + item.getImgPath();
-		item.setImgPath(imageUrl);
-		return item;
+
+		ItemInCartDTO itemDTO = mapper.toItemInCart(item);
+		String userName = "anonymous";
+		Cart cart = cartRepository.findAllByUserName(userName);
+		mapper.setCountToItem(cart, itemDTO);
+		mapper.setImgUrl(itemDTO, request);
+
+		return itemDTO;
 	}
 
-	private void decreaseItemCount(Item item) {
-		Cart cart = item.getItemInCart();
-		if (cart == null) return;
-
-		if (cart.getCount() == 1) {
-			item.setItemInCart(null);
+	private void decreaseItemCount(CartItem itemInCart) {
+		if (itemInCart.getCount() == 1) {
+			itemInCart.setCart(null);
 		} else {
-			cart.removeOne();
+			itemInCart.removeOne();
 		}
 	}
 
-	private void increaseItemCount(Item item) {
-		Cart cart = item.getItemInCart();
-		if (cart == null) {
-			cart = new Cart();
-			cart.setItem(item);
-			cart.setCount(1);
-			item.setItemInCart(cart);
+	private void increaseItemCount(Optional<CartItem> itemInCart, Long id) {
+		if (!itemInCart.isPresent()) {
+			Optional<Item> item = itemRepository.findById(id);
+			CartItem newItemInCart = new CartItem();
+			newItemInCart.setItem(item.get());
+			newItemInCart.setCount(1);
+			newItemInCart.setCart(cartRepository.findAllByUserName(userName));
+			cartItemRepository.save(newItemInCart);
 		} else {
-			cart.addOne();
+			itemInCart.get().addOne();
 		}
 	}
 
-	private static String getBaseUrl(HttpServletRequest request) {
+	public static String getBaseUrl(HttpServletRequest request) {
 		return "/" + request.getServerName() + ":" + request.getServerPort();
 	}
 }

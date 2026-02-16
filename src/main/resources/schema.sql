@@ -12,10 +12,22 @@ CREATE TABLE if not exists items (
 
 CREATE TABLE if not exists carts (
   id BIGSERIAL NOT NULL,
-  item_id BIGINT NOT NULL,
-  count int8 NULL,
+  user_name varchar(50) NOT NULL,
   CONSTRAINT carts_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE if not exists cart_item (
+  id BIGSERIAL NOT NULL,
+  item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
+  cart_id BIGINT NOT NULL,
+  count int8 NULL,
+  CONSTRAINT cart_item_pkey PRIMARY KEY (item_id, cart_id)
+);
+
+ALTER TABLE cart_item DROP CONSTRAINT IF EXISTS cart_item_cart_id_fkey;
+ALTER TABLE cart_item
+    ADD CONSTRAINT cart_item_cart_id_fkey
+        FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE;
 
 CREATE TABLE if not exists orders (
    id BIGSERIAL NOT NULL,
@@ -32,6 +44,7 @@ CREATE TABLE if not exists order_item (
    UNIQUE(order_id, item_id)
 );
 
+ALTER TABLE order_item DROP CONSTRAINT IF EXISTS order_item_order_id_fkey;
 ALTER TABLE order_item
     ADD CONSTRAINT order_item_order_id_fkey
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
