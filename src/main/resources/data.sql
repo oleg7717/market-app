@@ -13,9 +13,9 @@ insert into items (title, description, img_path, price) values
 on conflict do nothing;
 
 truncate carts restart identity cascade;
-insert into carts (id, user_name) values
-(1, 'anonymous'),
-(2, 'user1')
+insert into carts (user_name) values
+('anonymous'),
+('user1')
 on conflict do nothing;
 
 truncate cart_item restart identity cascade;

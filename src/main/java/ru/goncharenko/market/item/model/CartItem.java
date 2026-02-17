@@ -1,6 +1,5 @@
 package ru.goncharenko.market.item.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +30,7 @@ public class CartItem {
 	@JoinColumn(name = "item_id")
 	private Item item;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	@JoinColumn(name = "cart_id")
 	private Cart cart;
 

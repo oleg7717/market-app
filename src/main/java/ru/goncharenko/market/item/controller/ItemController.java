@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +15,7 @@ import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.item.dto.ListItemsDTO;
+import ru.goncharenko.market.item.service.CartService;
 import ru.goncharenko.market.item.service.FileService;
 import ru.goncharenko.market.item.service.ItemService;
 
@@ -24,6 +24,7 @@ import ru.goncharenko.market.item.service.ItemService;
 @RequiredArgsConstructor
 public class ItemController {
 	private final ItemService itemService;
+	private final CartService cartService;
 	private final FileService fileService;
 
 	@GetMapping(path = {"/items", ""})
@@ -55,7 +56,7 @@ public class ItemController {
 			@RequestParam(defaultValue = "5")
 				@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
 			@RequestParam ActionEnum action) {
-		itemService.changeItemCountInCart(id, action);
+		cartService.changeItemsCountFromCart(id, action);
 		return new ModelAndView(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
 				search,
 				sort,
@@ -76,7 +77,7 @@ public class ItemController {
 
 	@PostMapping(path = "/items/{id}")
 	public ModelAndView changeItemCountInCartFromItem(@PathVariable long id, @RequestParam ActionEnum action) {
-		itemService.changeItemCountInCart(id, action);
+		cartService.changeItemsCountFromCart(id, action);
 		ItemInCartDTO itemDTO = itemService.findById(id);
 
 		ModelAndView modelAndView = new ModelAndView("item");

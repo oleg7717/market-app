@@ -7,34 +7,26 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.core.exception.ResourceNotFoundException;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.mapper.CartItemMapper;
 import ru.goncharenko.market.item.model.Cart;
-import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
-import ru.goncharenko.market.item.repository.CartItemRepository;
-import ru.goncharenko.market.item.repository.CartRepository;
 import ru.goncharenko.market.item.repository.ItemRepository;
 import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.core.response.Paging;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ItemService {
 	private final ItemRepository itemRepository;
-	private final CartRepository cartRepository;
-	private final CartItemRepository cartItemRepository;
+	private final CartService cartService;
 	private final CartItemMapper mapper;
 	private final HttpServletRequest request;
-	private final String userName = "anonymous";
 
 	public ListItemsDTO getItems(String search, SortEnum sort, int pageNumber, int pageSize) {
 		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(sort.getFieldName()));
@@ -45,7 +37,7 @@ public class ItemService {
 			page = itemRepository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable);
 		}
 
-		Cart cart = cartRepository.findAllByUserName(userName);
+		Cart cart = cartService.getOrCreateCart();
 
 		int totalItems = page.getNumberOfElements();
 		int groupSize = Math.min(pageSize, 3);
@@ -60,9 +52,9 @@ public class ItemService {
 			}
 
 			List<ItemInCartDTO> itemInCartDTO = mapper.toItemListInCart(group);
-			itemInCartDTO.forEach(item -> {
+			for (ItemInCartDTO item : itemInCartDTO) {
 				mapper.setCountToItem(cart, item);
-			});
+			}
 			mapper.setImgUrl(itemInCartDTO, request);
 
 			itemsInCart.add(itemInCartDTO);
@@ -74,47 +66,16 @@ public class ItemService {
 				.build();
 	}
 
-	@Transactional
-	public void changeItemCountInCart(long id, ActionEnum action) {
-		Optional<CartItem> itemInCart = cartItemRepository.findItemInCartById(id, userName);
-		switch (action) {
-			case MINUS -> decreaseItemCount(itemInCart.get());
-			case PLUS -> increaseItemCount(itemInCart, id);
-		}
-	}
-
 	public ItemInCartDTO findById(long id) {
 		Item item = itemRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Item with id: %s not found.", id)));
 
 		ItemInCartDTO itemDTO = mapper.toItemInCart(item);
-		String userName = "anonymous";
-		Cart cart = cartRepository.findAllByUserName(userName);
+		Cart cart = cartService.getOrCreateCart();
 		mapper.setCountToItem(cart, itemDTO);
 		mapper.setImgUrl(itemDTO, request);
 
 		return itemDTO;
-	}
-
-	private void decreaseItemCount(CartItem itemInCart) {
-		if (itemInCart.getCount() == 1) {
-			itemInCart.setCart(null);
-		} else {
-			itemInCart.removeOne();
-		}
-	}
-
-	private void increaseItemCount(Optional<CartItem> itemInCart, Long id) {
-		if (!itemInCart.isPresent()) {
-			Optional<Item> item = itemRepository.findById(id);
-			CartItem newItemInCart = new CartItem();
-			newItemInCart.setItem(item.get());
-			newItemInCart.setCount(1);
-			newItemInCart.setCart(cartRepository.findAllByUserName(userName));
-			cartItemRepository.save(newItemInCart);
-		} else {
-			itemInCart.get().addOne();
-		}
 	}
 
 	public static String getBaseUrl(HttpServletRequest request) {

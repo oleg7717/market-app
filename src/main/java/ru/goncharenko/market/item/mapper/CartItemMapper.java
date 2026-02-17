@@ -50,11 +50,13 @@ public interface CartItemMapper {
 	}
 
 	default void setCountToItem(Cart cart, ItemInCartDTO itemDTO) {
-		cart.getCartItems().forEach(itemInCart -> {
-			if (itemInCart.getItem().getId() == itemDTO.getId()) {
-				itemDTO.setCount(itemInCart.getCount());
-			}
-		});
+		if (cart.getCartItems() != null) {
+			cart.getCartItems().forEach(itemInCart -> {
+				if (itemInCart.getItem().getId() == itemDTO.getId()) {
+					itemDTO.setCount(itemInCart.getCount());
+				}
+			});
+		}
 	}
 
 	default void setImgUrl(List<ItemInCartDTO> items, HttpServletRequest request) {
