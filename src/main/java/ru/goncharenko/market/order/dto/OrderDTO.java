@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 
 @Setter
 @Getter
+@Accessors(fluent = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDTO {
@@ -16,16 +18,4 @@ public class OrderDTO {
 	private List<ItemInOrderDTO> items;
 	private Long totalSum;
 	private String newOrder;
-
-	public Long id() {
-		return id;
-	}
-
-	public List<ItemInOrderDTO> items() {
-		return items;
-	}
-
-	public Long totalSum() {
-		return totalSum;
-	}
 }

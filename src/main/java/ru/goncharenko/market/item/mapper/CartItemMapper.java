@@ -43,7 +43,7 @@ public interface CartItemMapper {
 
 		List<ItemInCartDTO> itemsInCartDTO = toItemInCartList(cart.getCartItems());
 		long total = itemsInCartDTO.stream()
-				.mapToLong(itemInCart -> itemInCart.getPrice() * itemInCart.getCount())
+				.mapToLong(itemInCart -> itemInCart.price() * itemInCart.count())
 				.sum();
 
 		return new CartDTO(itemsInCartDTO, total);
@@ -52,8 +52,8 @@ public interface CartItemMapper {
 	default void setCountToItem(Cart cart, ItemInCartDTO itemDTO) {
 		if (cart.getCartItems() != null) {
 			cart.getCartItems().forEach(itemInCart -> {
-				if (itemInCart.getItem().getId() == itemDTO.getId()) {
-					itemDTO.setCount(itemInCart.getCount());
+				if (itemInCart.getItem().getId() == itemDTO.id()) {
+					itemDTO.count(itemInCart.getCount());
 				}
 			});
 		}
@@ -64,7 +64,7 @@ public interface CartItemMapper {
 	}
 
 	default void setImgUrl(ItemInCartDTO item, HttpServletRequest request) {
-		String imageUrl = getBaseUrl(request) + item.getImgPath();
-		item.setImgPath(imageUrl);
+		String imageUrl = getBaseUrl(request) + item.imgPath();
+		item.imgPath(imageUrl);
 	}
 }

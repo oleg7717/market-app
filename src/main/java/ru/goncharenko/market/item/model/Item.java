@@ -1,12 +1,10 @@
 package ru.goncharenko.market.item.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -37,9 +35,6 @@ public class Item {
 	@Positive
 	@Column(name = "price")
 	private long price;
-
-/*	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-	private CartItem itemInCart;*/
 
 	public Item(long id) {
 		this.id = id;

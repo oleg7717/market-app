@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Setter
 @Getter
+@Accessors(fluent = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemInOrderDTO {
@@ -14,20 +16,4 @@ public class ItemInOrderDTO {
 	String title;
 	long price;
 	int count;
-
-	public String title() {
-		return title;
-	}
-
-	public long id() {
-		return id;
-	}
-
-	public long price() {
-		return price;
-	}
-
-	public int count() {
-		return count;
-	}
 }

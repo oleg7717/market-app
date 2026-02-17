@@ -27,7 +27,7 @@ public class OrderService {
 		Order order = repository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Order with id: %s not found", id)));
 		OrderDTO orderDTO = mapper.toOrderDto(order);
-		orderDTO.setNewOrder(newOrder);
+		orderDTO.newOrder(newOrder);
 		return SingleOrderDTO.builder().order(orderDTO).build();
 	}
 }
