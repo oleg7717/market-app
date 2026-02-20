@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_market_db
+    restart:  no
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: <user_placeholder>
+      POSTGRES_PASSWORD: <password_placeholder>
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: market
+    restart: no
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring переменные
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: <user_placeholder>
+      SPRING_DATASOURCE_PASSWORD: <password_placeholder>
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:      
