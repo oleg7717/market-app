@@ -17,5 +17,4 @@ public class OrderDTO {
 	private Long id;
 	private List<ItemInOrderDTO> items;
 	private Long totalSum;
-	private String newOrder;
 }

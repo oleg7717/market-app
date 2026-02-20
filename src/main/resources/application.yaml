@@ -1,11 +1,10 @@
 spring:
   application:
     name: market
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=market
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=market
     username: postgres
     password: password
-    driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
     hibernate:

@@ -1,19 +1,19 @@
 package ru.goncharenko.market.item.repository;
 
 import org.jspecify.annotations.NonNull;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Flux;
 import ru.goncharenko.market.item.model.Item;
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
-	@Query("SELECT i " +
-			"FROM Item i " +
-			"WHERE i.description like %:description% or i.title like %:description%")
-	Page<Item> findByDescriptionOrTitleContainingIgnoreCase(String description, Pageable pageable);
+import java.util.Collection;
 
-	@Query("SELECT i " +
-			"FROM Item i")
-	Page<Item> findAll(@NonNull Pageable pageable);
+public interface ItemRepository extends ReactiveCrudRepository<Item, Long> {
+//	Flux<Item> findByDescriptionOrTitleContainingIgnoreCase(String description, Pageable pageable);
+
+//	Flux<Item> findAll(@NonNull Pageable pageable);
+
+	Flux<Item> findAllByIdIn(Collection<Long> ids);
+
+	<T> Flux<T> findItemsByIdIn(Collection<Long> ids);
 }

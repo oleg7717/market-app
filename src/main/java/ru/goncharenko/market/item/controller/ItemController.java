@@ -1,3 +1,4 @@
+/*
 package ru.goncharenko.market.item.controller;
 
 import jakarta.validation.constraints.Min;
@@ -91,3 +92,4 @@ public class ItemController {
 		return fileService.download(filename);
 	}
 }
+*/

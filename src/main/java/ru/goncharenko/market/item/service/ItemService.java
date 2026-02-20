@@ -1,3 +1,4 @@
+/*
 package ru.goncharenko.market.item.service;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -82,3 +83,4 @@ public class ItemService {
 		return "/" + request.getServerName() + ":" + request.getServerPort();
 	}
 }
+*/

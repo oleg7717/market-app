@@ -1,21 +1,13 @@
 package ru.goncharenko.market.item.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
 @Table(name = "cart_item")
 @Setter
 @Getter
@@ -23,19 +15,15 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CartItem {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@OneToOne
-	@JoinColumn(name = "item_id")
-	private Item item;
+	@Column("cart_id")
+	private Long cartId;
 
-	@ManyToOne
-	@JoinColumn(name = "cart_id")
-	private Cart cart;
+	@Column("item_id")
+	private Long itemId;
 
-	@Positive
-	@Column(name = "count")
+	@Column("count")
 	private int count;
 
 	public void removeOne() {
