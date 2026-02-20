@@ -26,11 +26,11 @@ public class CartItem {
 	@Column("count")
 	private int count;
 
-	public void removeOne() {
+/*	public void removeOne() {
 		this.count--;
 	}
 
 	public void addOne() {
 		this.count++;
-	}
+	}*/
 }

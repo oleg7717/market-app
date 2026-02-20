@@ -1,6 +1,7 @@
 package ru.goncharenko.market.order.model;
 
 import jakarta.persistence.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class Order {
 	@Id
 	private Long id;
 
+	@Column("total_sum")
 	private Long totalSum;
 
 	private String status;

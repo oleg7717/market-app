@@ -2,9 +2,9 @@ package ru.goncharenko.market.item.service;
 
 //import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartContext;
@@ -19,7 +19,6 @@ import ru.goncharenko.market.item.repository.ItemRepository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +28,7 @@ public class CartService {
 	private final CartItemRepository cartItemRepository;
 	private final ItemRepository itemRepository;
 	private final CartItemMapper mapper;
+	private final DatabaseClient databaseClient;
 //	private final HttpServletRequest request;
 
 	private final String userName = "anonymous";
@@ -36,10 +36,10 @@ public class CartService {
 	@Transactional
 	public Mono<Cart> getOrCreateCart() {
 		return cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
-					Cart newCart = new Cart();
-					newCart.setUserName(userName);
-					return cartRepository.save(newCart);
-				}));
+			Cart newCart = new Cart();
+			newCart.setUserName(userName);
+			return cartRepository.save(newCart);
+		}));
 	}
 
 	@Transactional
@@ -76,36 +76,66 @@ public class CartService {
 				.collect(Collectors.toList());
 	}
 
-/*	@Transactional
-	public void changeItemsCountFromCart(long id, ActionEnum action) {
-		Optional<CartItem> itemInCart = cartItemRepository.findItemInCartByUserNameAndItemId(userName, id);
-		switch (action) {
-			case MINUS -> decreaseItemCount(itemInCart, id);
-			case PLUS -> increaseItemCount(itemInCart, id);
-		}
+	@Transactional
+	public Mono<Void> changeItemsCountFromCart(long id, ActionEnum action) {
+		return getOrCreateCart()
+				.flatMap(cart -> switch (action) {
+					case MINUS -> decreaseItemCount(cart.getId(), id);
+					case PLUS -> increaseItemCount(cart.getId(), id);
+				});
 	}
 
-	@Transactional
-	void decreaseItemCount(Optional<CartItem> itemInCart, Long id) {
-		itemInCart.ifPresent(item -> {
-			if (item.getCount() == 1) {
-				cartItemRepository.deleteByUsernameAndItemId(userName, id);
-			} else {
-				item.removeOne();
-			}
-		});
+	private Mono<Void> decreaseItemCount(Long cartId, Long itemId) {
+		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
+				.flatMap(cartItem -> {
+					if (cartItem.getCount() == 1) {
+						return databaseClient
+								.sql(String.format("delete from cart_item " +
+												"where cart_id = %d and item_id = %d",
+										cartId,
+										itemId))
+								.fetch()
+								.one()
+								.then();
+					} else {
+						return databaseClient
+								.sql(String.format("update cart_item set count = %d " +
+												"where cart_id = %d and item_id = %d",
+										(cartItem.getCount() - 1),
+										cartId,
+										itemId))
+								.fetch()
+								.one()
+								.then();
+					}
+				});
 	}
 
-	@Transactional
-	void increaseItemCount(Optional<CartItem> itemInCart, Long id) {
-		itemInCart.ifPresentOrElse(CartItem::addOne, () -> {
-			itemRepository.findById(id).ifPresent(item -> {
-				CartItem cartItem = new CartItem();
-				cartItem.setCount(1);
-				cartItem.setItem(item);
-				cartItem.setCart(getOrCreateCart());
-				cartItemRepository.save(cartItem);
-			});
-		});
-	}*/
+	private Mono<Void> increaseItemCount(Long cartId, Long itemId) {
+		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
+				.switchIfEmpty(Mono.defer(() -> createNewCartItem(cartId, itemId)))
+				.flatMap(cartItem -> databaseClient
+						.sql(String.format("update cart_item set count = %d " +
+										"where cart_id = %d and item_id = %d",
+								(cartItem.getCount() + 1),
+								cartId,
+								itemId))
+						.fetch()
+						.one()
+						.then());
+	}
+
+	private Mono<CartItem> createNewCartItem(Long cartId, Long itemId) {
+		return Mono.zip(
+						itemRepository.findById(itemId),
+						cartRepository.findById(cartId)
+				)
+				.flatMap(tuple -> {
+					CartItem cartItem = new CartItem();
+					cartItem.setCount(1);
+					cartItem.setItemId(tuple.getT1().getId());
+					cartItem.setCartId(tuple.getT2().getId());
+					return cartItemRepository.save(cartItem);
+				});
+	}
 }
