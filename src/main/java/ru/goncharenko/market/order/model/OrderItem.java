@@ -24,5 +24,5 @@ public class OrderItem {
 	private Long orderId;
 
 	@Column("count")
-	private int count;
+	private Integer count;
 }

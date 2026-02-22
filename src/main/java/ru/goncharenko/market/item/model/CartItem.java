@@ -15,7 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @AllArgsConstructor
 public class CartItem {
 	@Id
-	private long id;
+	private Long id;
 
 	@Column("cart_id")
 	private Long cartId;
@@ -24,13 +24,5 @@ public class CartItem {
 	private Long itemId;
 
 	@Column("count")
-	private int count;
-
-/*	public void removeOne() {
-		this.count--;
-	}
-
-	public void addOne() {
-		this.count++;
-	}*/
+	private Integer count;
 }

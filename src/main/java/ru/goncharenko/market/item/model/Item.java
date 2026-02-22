@@ -15,7 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @AllArgsConstructor
 public class Item {
 	@Id
-	private long id;
+	private Long id;
 
 	@Column("title")
 	private String title;
@@ -27,9 +27,5 @@ public class Item {
 	private String imgPath;
 
 	@Column("price")
-	private long price;
-
-	public Item(long id) {
-		this.id = id;
-	}
+	private Long price;
 }

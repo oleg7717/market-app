@@ -1,11 +1,9 @@
 package ru.goncharenko.market.item.mapper;
 
-//import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
-import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 
@@ -13,12 +11,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-//import static ru.goncharenko.market.item.service.ItemService.getBaseUrl;
-
 @Component
 public class CartItemMapper {
+	public ItemInCartDTO toItemInCart(Item item) {
+		if (item == null) {
+			return null;
+		}
+
+		return ItemInCartDTO.builder()
+				.id(item.getId())
+				.title(item.getTitle())
+				.description(item.getDescription())
+				.imgPath(item.getImgPath())
+				.price(item.getPrice())
+				.build();
+	}
+
 	public CartDTO buildCartDTO(CartContext context) {
-		Cart cart = context.getCart();
 		List<CartItem> items = context.getItems();
 		Map<Long, Item> itemMap = context.getItemMap();
 
@@ -48,18 +57,13 @@ public class CartItemMapper {
 				item.getId(),
 				item.getTitle(),
 				item.getDescription(),
-				item.getImgPath(),
+				setImgUrl(item),
 				item.getPrice(),
 				cartItem.getCount()
 		);
 	}
 
-/*	default void setImgUrl(List<ItemInCartDTO> items, HttpServletRequest request) {
-		items.forEach(item -> setImgUrl(item, request));
+	private String setImgUrl(Item item) {
+		return "/localhost:8080" + item.getImgPath();
 	}
-
-	default void setImgUrl(ItemInCartDTO item, HttpServletRequest request) {
-		String imageUrl = getBaseUrl(request) + item.imgPath();
-		item.imgPath(imageUrl);
-	}*/
 }

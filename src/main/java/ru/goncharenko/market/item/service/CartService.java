@@ -1,6 +1,5 @@
 package ru.goncharenko.market.item.service;
 
-//import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,6 @@ public class CartService {
 	private final ItemRepository itemRepository;
 	private final CartItemMapper mapper;
 	private final DatabaseClient databaseClient;
-//	private final HttpServletRequest request;
 
 	private final String userName = "anonymous";
 
