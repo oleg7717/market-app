@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -36,7 +37,7 @@ public class ItemService {
 	private final CartItemMapper mapper;
 	private final DatabaseClient databaseClient;
 
-	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size) {
+	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size, ServerWebExchange exchange) {
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort.getFieldName()));
 
 		return Mono.zip(
@@ -49,7 +50,7 @@ public class ItemService {
 					Cart cart = tuple.getT2();
 
 					return getItemCounts(cart.getId(), items)
-							.map(counts -> buildResponse(items, counts, page, size, total));
+							.map(counts -> buildResponse(items, counts, page, size, total, exchange));
 				});
 	}
 
@@ -87,8 +88,8 @@ public class ItemService {
 	}
 
 	private ListItemsDTO buildResponse(List<Item> items, Map<Long, Integer> counts,
-	                                   int page, int size, long total) {
-		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size);
+	                                   int page, int size, long total, ServerWebExchange exchange) {
+		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size, exchange);
 
 		return ListItemsDTO.builder()
 				.items(groupedItems)
@@ -96,7 +97,7 @@ public class ItemService {
 				.build();
 	}
 
-	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size) {
+	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size, ServerWebExchange exchange) {
 		int groupSize = Math.min(size, 3);
 		List<List<ItemInCartDTO>> result = new ArrayList<>();
 
@@ -108,7 +109,7 @@ public class ItemService {
 				Item item = items.get(j);
 				ItemInCartDTO dto = mapper.toItemInCart(item);
 				dto.count(counts.getOrDefault(item.getId(), 0));
-				setImgUrl(dto);
+				setImgUrl(dto, exchange);
 				group.add(dto);
 			}
 
@@ -125,7 +126,7 @@ public class ItemService {
 		return result;
 	}
 
-	public Mono<ItemInCartDTO> findById(Long id) {
+	public Mono<ItemInCartDTO> findById(Long id, ServerWebExchange exchange) {
 		return cartService.getOrCreateCart()
 				.flatMap(cart -> findItemWithCount(cart.getId(), id))
 				.map(tuple -> {
@@ -134,7 +135,7 @@ public class ItemService {
 
 					ItemInCartDTO dto = mapper.toItemInCart(item);
 					dto.count(count);
-					setImgUrl(dto);
+					setImgUrl(dto, exchange);
 					return dto;
 				});
 	}
@@ -163,7 +164,15 @@ public class ItemService {
 				.switchIfEmpty(Mono.error(new ResourceNotFoundException(String.format("Item with id: %d not found.", itemId))));
 	}
 
-	private void setImgUrl(ItemInCartDTO item) {
-		item.imgPath("/localhost:8080" + item.imgPath());
+	private void setImgUrl(ItemInCartDTO item, ServerWebExchange exchange) {
+		String host = exchange.getRequest().getURI().getHost();
+		int port = exchange.getRequest().getURI().getPort();
+
+		String serverUri = "/" + host;
+		if (port != -1 && port != 80 && port != 443) {
+			serverUri = serverUri + ":" + port;
+		}
+
+		item.imgPath(serverUri + item.imgPath());
 	}
 }

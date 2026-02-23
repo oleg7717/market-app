@@ -1,10 +1,11 @@
 package ru.goncharenko.market.item.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import ru.goncharenko.market.core.exception.ResourceNotFoundException;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
@@ -18,7 +19,6 @@ import ru.goncharenko.market.item.repository.ItemRepository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +28,6 @@ public class CartService {
 	private final CartItemRepository cartItemRepository;
 	private final ItemRepository itemRepository;
 	private final CartItemMapper mapper;
-	private final DatabaseClient databaseClient;
 
 	private final String userName = "anonymous";
 
@@ -42,13 +41,13 @@ public class CartService {
 	}
 
 	@Transactional
-	public Mono<CartDTO> getItemsInCart() {
+	public Mono<CartDTO> getItemsInCart(ServerWebExchange exchange) {
 		return getOrCreateCart()
 				.flatMap(cart -> cartItemRepository.findAllByCartId(cart.getId())
 						.collectList()
 						.map(items -> new CartContext(cart, items)))
 				.flatMap(this::enrichItemsWithDetails)
-				.map(mapper::buildCartDTO);
+				.map(cartContext -> mapper.buildCartDTO(cartContext, exchange));
 	}
 
 	private Mono<CartContext> enrichItemsWithDetails(CartContext context) {
@@ -86,58 +85,32 @@ public class CartService {
 
 	private Mono<Void> decreaseItemCount(Long cartId, Long itemId) {
 		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
+				.switchIfEmpty(
+						Mono.error(new ResourceNotFoundException(String.format("Item with id: %d not found.", itemId))))
 				.flatMap(cartItem -> {
 					if (cartItem.getCount() == 1) {
-						return databaseClient
-								.sql(String.format("delete from cart_item " +
-												"where cart_id = %d and item_id = %d",
-										cartId,
-										itemId))
-								.fetch()
-								.one()
-								.then();
+						return cartItemRepository.delete(cartItem);
 					} else {
-						return databaseClient
-								.sql(String.format("update cart_item set count = %d " +
-												"where cart_id = %d and item_id = %d",
-										(cartItem.getCount() - 1),
-										cartId,
-										itemId))
-								.fetch()
-								.one()
-								.then();
+						cartItem.setCount(cartItem.getCount() - 1);
+						return cartItemRepository.save(cartItem);
 					}
-				});
+				})
+				.then();
 	}
 
 	private Mono<Void> increaseItemCount(Long cartId, Long itemId) {
-		return databaseClient.sql(
-						"SELECT count FROM cart_item WHERE cart_id = :cartId AND item_id = :itemId")
-				.bind("cartId", cartId)
-				.bind("itemId", itemId)
-				.map(row -> Objects.requireNonNull(row.get("count", Integer.class)))
-				.all()
-				.collectList()
-				.flatMap(counts -> {
-					if (counts.isEmpty()) {
-						return databaseClient.sql(
-										"insert into cart_item (item_id, cart_id, count) values (:itemId, :cartId, 1)")
-								.bind("itemId", itemId)
-								.bind("cartId", cartId)
-								.fetch()
-								.rowsUpdated()
-								.then();
-					} else {
-						int currentCount = counts.getFirst();
-						return databaseClient.sql(
-										"UPDATE cart_item SET count = :count WHERE cart_id = :cartId AND item_id = :itemId")
-								.bind("count", currentCount + 1)
-								.bind("cartId", cartId)
-								.bind("itemId", itemId)
-								.fetch()
-								.rowsUpdated()
-								.then();
-					}
-				});
+		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
+				.flatMap(cartItem -> {
+					cartItem.setCount(cartItem.getCount() + 1);
+					return cartItemRepository.save(cartItem);
+				})
+				.switchIfEmpty(Mono.defer(() -> {
+					CartItem newCartItem = new CartItem();
+					newCartItem.setCartId(cartId);
+					newCartItem.setItemId(itemId);
+					newCartItem.setCount(1);
+					return cartItemRepository.save(newCartItem);
+				}))
+				.then();
 	}
 }

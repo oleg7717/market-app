@@ -1,6 +1,7 @@
 package ru.goncharenko.market.item.mapper;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
@@ -27,11 +28,11 @@ public class CartItemMapper {
 				.build();
 	}
 
-	public CartDTO buildCartDTO(CartContext context) {
+	public CartDTO buildCartDTO(CartContext context, ServerWebExchange exchange) {
 		List<CartItem> items = context.getItems();
 		Map<Long, Item> itemMap = context.getItemMap();
 
-		List<ItemInCartDTO> itemDTOs = buildItemDTOs(items, itemMap);
+		List<ItemInCartDTO> itemDTOs = buildItemDTOs(items, itemMap, exchange);
 		long total = calculateTotal(itemDTOs);
 
 		return new CartDTO(
@@ -46,24 +47,32 @@ public class CartItemMapper {
 				.sum();
 	}
 
-	public List<ItemInCartDTO> buildItemDTOs(List<CartItem> items, Map<Long, Item> itemMap) {
+	public List<ItemInCartDTO> buildItemDTOs(List<CartItem> items, Map<Long, Item> itemMap, ServerWebExchange exchange) {
 		return items.stream()
-				.map(item -> createCartItemDTO(item, itemMap.get(item.getItemId())))
+				.map(item -> createCartItemDTO(item, itemMap.get(item.getItemId()), exchange))
 				.collect(Collectors.toList());
 	}
 
-	private ItemInCartDTO createCartItemDTO(CartItem cartItem, Item item) {
+	private ItemInCartDTO createCartItemDTO(CartItem cartItem, Item item, ServerWebExchange exchange) {
 		return new ItemInCartDTO(
 				item.getId(),
 				item.getTitle(),
 				item.getDescription(),
-				setImgUrl(item),
+				setImgUrl(item, exchange),
 				item.getPrice(),
 				cartItem.getCount()
 		);
 	}
 
-	private String setImgUrl(Item item) {
-		return "/localhost:8080" + item.getImgPath();
+	private String setImgUrl(Item item, ServerWebExchange exchange) {
+		String host = exchange.getRequest().getURI().getHost();
+		int port = exchange.getRequest().getURI().getPort();
+
+		String serverUri = "/" + host;
+		if (port != -1 && port != 80 && port != 443) {
+			serverUri = serverUri + ":" + port;
+		}
+
+		return serverUri + item.getImgPath();
 	}
 }

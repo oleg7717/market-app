@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.item.dto.ItemRequest;
 import ru.goncharenko.market.item.service.CartService;
@@ -18,8 +19,8 @@ public class CartController {
 	private final CartService service;
 
 	@GetMapping(path = "/items")
-	public Mono<Rendering> show() {
-		return service.getItemsInCart().flatMap(cartDTO ->
+	public Mono<Rendering> show(ServerWebExchange exchange) {
+		return service.getItemsInCart(exchange).flatMap(cartDTO ->
 			Mono.just(Rendering.view("cart")
 					.modelAttribute("items", cartDTO.getItems())
 					.modelAttribute("total", cartDTO.getTotal())
@@ -28,9 +29,9 @@ public class CartController {
 	}
 
 	@PostMapping(path = "/items")
-	public Mono<Rendering> changeItemsCountFromCart(@ModelAttribute ItemRequest request) {
+	public Mono<Rendering> changeItemsCountFromCart(@ModelAttribute ItemRequest request, ServerWebExchange exchange) {
 		return service.changeItemsCountFromCart(request.getId(), request.getAction()).then(
-				service.getItemsInCart().flatMap(cartDTO ->
+				service.getItemsInCart(exchange).flatMap(cartDTO ->
 						Mono.just(Rendering.view("cart")
 								.modelAttribute("items", cartDTO.getItems())
 								.modelAttribute("total", cartDTO.getTotal())

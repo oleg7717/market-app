@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemRequest;
@@ -34,8 +35,9 @@ public class ItemController {
 			@RequestParam(defaultValue = "1")
 			@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
 			@RequestParam(defaultValue = "5")
-			@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
-		return itemService.getItems(search, sort, pageNumber, pageSize)
+			@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
+			ServerWebExchange exchange) {
+		return itemService.getItems(search, sort, pageNumber, pageSize, exchange)
 				.flatMap(item ->
 						Mono.just(Rendering.view("items")
 								.modelAttribute("items", item.getItems()).
@@ -64,8 +66,8 @@ public class ItemController {
 	}
 
 	@GetMapping(path = "/items/{id}")
-	public Mono<Rendering> show(@PathVariable Long id) {
-		return itemService.findById(id).flatMap(item ->
+	public Mono<Rendering> show(@PathVariable Long id, ServerWebExchange exchange) {
+		return itemService.findById(id, exchange).flatMap(item ->
 				Mono.just(Rendering.view("item")
 						.modelAttribute("item", item)
 						.build())
@@ -73,10 +75,10 @@ public class ItemController {
 	}
 
 	@PostMapping(path = "/items/{id}")
-	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request) {
+	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request, ServerWebExchange exchange) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
 				.then(
-						itemService.findById(request.getId()).flatMap(item ->
+						itemService.findById(request.getId(), exchange).flatMap(item ->
 								Mono.just(Rendering.view("item")
 										.modelAttribute("item", item)
 										.build())
