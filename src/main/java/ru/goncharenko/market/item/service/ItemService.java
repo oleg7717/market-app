@@ -80,7 +80,7 @@ public class ItemService {
 
 		return cartItemRepository.findByCartIdAndItemIdIn(cartId, itemIds)
 				.collectMap(
-						CartItem::getId,
+						CartItem::getItemId,
 						CartItem::getCount
 				)
 				.defaultIfEmpty(new HashMap<>());
@@ -112,7 +112,6 @@ public class ItemService {
 				group.add(dto);
 			}
 
-			// Добавляем пустые элементы для заполнения группы
 			while (group.size() < groupSize) {
 				ItemInCartDTO empty = new ItemInCartDTO();
 				empty.id(-1);
@@ -161,7 +160,7 @@ public class ItemService {
 					return Tuples.of(item, Objects.requireNonNull(count));
 				})
 				.one()
-				.switchIfEmpty(Mono.error(new ResourceNotFoundException("Item not found: " + itemId)));
+				.switchIfEmpty(Mono.error(new ResourceNotFoundException(String.format("Item with id: %d not found.", itemId))));
 	}
 
 	private void setImgUrl(ItemInCartDTO item) {

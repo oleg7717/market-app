@@ -18,6 +18,7 @@ import ru.goncharenko.market.item.repository.ItemRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,30 +111,33 @@ public class CartService {
 	}
 
 	private Mono<Void> increaseItemCount(Long cartId, Long itemId) {
-		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
-				.switchIfEmpty(Mono.defer(() -> createNewCartItem(cartId, itemId)))
-				.flatMap(cartItem -> databaseClient
-						.sql(String.format("update cart_item set count = %d " +
-										"where cart_id = %d and item_id = %d",
-								(cartItem.getCount() + 1),
-								cartId,
-								itemId))
-						.fetch()
-						.one()
-						.then());
-	}
-
-	private Mono<CartItem> createNewCartItem(Long cartId, Long itemId) {
-		return Mono.zip(
-						itemRepository.findById(itemId),
-						cartRepository.findById(cartId)
-				)
-				.flatMap(tuple -> {
-					CartItem cartItem = new CartItem();
-					cartItem.setCount(1);
-					cartItem.setItemId(tuple.getT1().getId());
-					cartItem.setCartId(tuple.getT2().getId());
-					return cartItemRepository.save(cartItem);
+		return databaseClient.sql(
+						"SELECT count FROM cart_item WHERE cart_id = :cartId AND item_id = :itemId")
+				.bind("cartId", cartId)
+				.bind("itemId", itemId)
+				.map(row -> Objects.requireNonNull(row.get("count", Integer.class)))
+				.all()
+				.collectList()
+				.flatMap(counts -> {
+					if (counts.isEmpty()) {
+						return databaseClient.sql(
+										"insert into cart_item (item_id, cart_id, count) values (:itemId, :cartId, 1)")
+								.bind("itemId", itemId)
+								.bind("cartId", cartId)
+								.fetch()
+								.rowsUpdated()
+								.then();
+					} else {
+						int currentCount = counts.getFirst();
+						return databaseClient.sql(
+										"UPDATE cart_item SET count = :count WHERE cart_id = :cartId AND item_id = :itemId")
+								.bind("count", currentCount + 1)
+								.bind("cartId", cartId)
+								.bind("itemId", itemId)
+								.fetch()
+								.rowsUpdated()
+								.then();
+					}
 				});
 	}
 }

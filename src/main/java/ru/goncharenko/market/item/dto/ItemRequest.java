@@ -13,4 +13,5 @@ import ru.goncharenko.market.core.types.ActionEnum;
 public class ItemRequest {
 	private Long id;
 	private ActionEnum action;
+	private String search;
 }

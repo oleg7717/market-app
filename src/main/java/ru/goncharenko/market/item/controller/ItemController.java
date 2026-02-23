@@ -38,30 +38,29 @@ public class ItemController {
 		return itemService.getItems(search, sort, pageNumber, pageSize)
 				.flatMap(item ->
 						Mono.just(Rendering.view("items")
-										.modelAttribute("items", item.getItems()).
-										modelAttribute("search", search).
-										modelAttribute("sort", sort).
-										modelAttribute("paging", item.getPaging())
+								.modelAttribute("items", item.getItems()).
+								modelAttribute("search", search).
+								modelAttribute("sort", sort).
+								modelAttribute("paging", item.getPaging())
 								.build())
 				);
 	}
 
 	@PostMapping(path = "/items")
-	public Mono<Rendering> changeItemCountInCartFromItemsPage(
+	public Mono<String> changeItemCountInCartFromItemsPage(
 			@ModelAttribute ItemRequest request,
-			@RequestParam(required = false) String search,
+//			@RequestParam(required = false) String search,
 			@RequestParam(defaultValue = "NO") SortEnum sort,
 			@RequestParam(defaultValue = "1")
-				@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
+			@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
 			@RequestParam(defaultValue = "5")
-				@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
-		cartService.changeItemsCountFromCart(request.getId(), request.getAction());
-
-		return Mono.just(Rendering.redirectTo(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
-						search,
+			@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
+		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
+				Mono.just(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
+						request.getSearch() != null ? request.getSearch() : "",
 						sort,
 						pageNumber,
-						pageSize)).build());
+						pageSize)));
 	}
 
 	@GetMapping(path = "/items/{id}")
@@ -75,12 +74,13 @@ public class ItemController {
 
 	@PostMapping(path = "/items/{id}")
 	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request) {
-		cartService.changeItemsCountFromCart(request.getId(), request.getAction());
-		return itemService.findById(request.getId()).flatMap(item ->
-				Mono.just(Rendering.view("item")
-						.modelAttribute("item", item)
-						.build())
-		);
+		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
+				.then(
+						itemService.findById(request.getId()).flatMap(item ->
+								Mono.just(Rendering.view("item")
+										.modelAttribute("item", item)
+										.build())
+						));
 	}
 
 	@GetMapping(path = "/images/{filename:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
