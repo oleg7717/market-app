@@ -4,11 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.goncharenko.market.core.types.ActionEnum;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemDTO {
-	private ItemInCartDTO item;
+public class ItemRequest {
+	private Long id;
+	private ActionEnum action;
+	private String search;
 }

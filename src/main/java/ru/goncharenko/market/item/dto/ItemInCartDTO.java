@@ -1,12 +1,16 @@
 package ru.goncharenko.market.item.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Setter
 @Getter
+@Builder
+@Accessors(fluent = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemInCartDTO {
@@ -16,28 +20,4 @@ public class ItemInCartDTO {
 	String imgPath;
 	long price;
 	int count;
-
-	public long id() {
-		return id;
-	}
-
-	public String title() {
-		return title;
-	}
-
-	public String description() {
-		return description;
-	}
-
-	public String imgPath() {
-		return imgPath;
-	}
-
-	public long price() {
-		return price;
-	}
-
-	public int count() {
-		return count;
-	}
 }

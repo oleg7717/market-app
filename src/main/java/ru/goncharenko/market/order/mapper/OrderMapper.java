@@ -1,40 +1,41 @@
 package ru.goncharenko.market.order.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.springframework.stereotype.Component;
 import ru.goncharenko.market.order.dto.ItemInOrderDTO;
-import ru.goncharenko.market.order.dto.ListOrdersDTO;
 import ru.goncharenko.market.order.dto.OrderDTO;
-import ru.goncharenko.market.order.model.Order;
-import ru.goncharenko.market.order.model.OrderItem;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-@Mapper(
-		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-		componentModel = MappingConstants.ComponentModel.SPRING,
-		unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
-public interface OrderMapper {
-	@Mapping(source = "orderItems", target = "items")
-	@Mapping(target = "newOrder", ignore = true)
-	OrderDTO toOrderDto(Order order);
+@Component
+public class OrderMapper {
+	public OrderDTO mapToOrderDto(List<Map<String, Object>> rows) {
+		if (rows.isEmpty()) {
+			return null;
+		}
 
-	default ListOrdersDTO ordersToListOrderDTO(List<Order> orders) {
-		List<OrderDTO> orderListDTO = toOrderListDTO(orders);
-		return new ListOrdersDTO(orderListDTO != null ? orderListDTO : Collections.emptyList());
+		Map<String, Object> firstRow = rows.getFirst();
+		OrderDTO orderDto = new OrderDTO();
+		orderDto.id(((Number) firstRow.get("order_id")).longValue());
+		orderDto.totalSum(((Number) firstRow.get("total_sum")).longValue());
+
+		List<ItemInOrderDTO> items = new ArrayList<>();
+
+		for (Map<String, Object> row : rows) {
+			if (row.get("order_item_id") != null) {
+				ItemInOrderDTO itemDto = new ItemInOrderDTO();
+				itemDto.id(((Number) row.get("item_id")).longValue());
+				itemDto.title((String) row.get("title"));
+				itemDto.price(((Number) row.get("price")).longValue());
+				itemDto.count(((Number) row.get("count")).intValue());
+
+				items.add(itemDto);
+			}
+		}
+		orderDto.items(items);
+
+		return orderDto;
 	}
-
-	List<OrderDTO> toOrderListDTO(List<Order> orders);
-
-	@Mapping(source = "item.id", target = "id")
-	@Mapping(source = "item.title", target = "title")
-	@Mapping(source = "item.price", target = "price")
-	@Mapping(target = "item.itemInCart", ignore = true)
-	ItemInOrderDTO orderItemToItemInOrderDTO(OrderItem orderItem);
 }
 

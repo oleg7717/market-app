@@ -1,70 +1,78 @@
 package ru.goncharenko.market.item.mapper;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
-import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import static ru.goncharenko.market.item.service.ItemService.getBaseUrl;
-
-@Mapper(
-		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-		componentModel = MappingConstants.ComponentModel.SPRING,
-		unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
-public interface CartItemMapper {
-	ItemInCartDTO toItemInCart(Item item);
-
-	List<ItemInCartDTO> toItemListInCart(List<Item> item);
-
-	@Mapping(source = "item.id", target = "id")
-	@Mapping(source = "item.title", target = "title")
-	@Mapping(source = "item.description", target = "description")
-	@Mapping(source = "item.imgPath", target = "imgPath")
-	@Mapping(source = "item.price", target = "price")
-	ItemInCartDTO toItemInCartDto(CartItem item);
-
-	List<ItemInCartDTO> toItemInCartList(List<CartItem> item);
-
-	default CartDTO onlyItemsInCart(Cart cart) {
-		if (cart == null) {
-			return new CartDTO(Collections.emptyList(), 0L);
+@Component
+public class CartItemMapper {
+	public ItemInCartDTO toItemInCart(Item item) {
+		if (item == null) {
+			return null;
 		}
 
-		List<ItemInCartDTO> itemsInCartDTO = toItemInCartList(cart.getCartItems());
-		long total = itemsInCartDTO.stream()
-				.mapToLong(itemInCart -> itemInCart.getPrice() * itemInCart.getCount())
+		return ItemInCartDTO.builder()
+				.id(item.getId())
+				.title(item.getTitle())
+				.description(item.getDescription())
+				.imgPath(item.getImgPath())
+				.price(item.getPrice())
+				.build();
+	}
+
+	public CartDTO buildCartDTO(CartContext context, ServerWebExchange exchange) {
+		List<CartItem> items = context.getItems();
+		Map<Long, Item> itemMap = context.getItemMap();
+
+		List<ItemInCartDTO> itemDTOs = buildItemDTOs(items, itemMap, exchange);
+		long total = calculateTotal(itemDTOs);
+
+		return new CartDTO(
+				itemDTOs,
+				total
+		);
+	}
+
+	private long calculateTotal(List<ItemInCartDTO> items) {
+		return items.stream()
+				.mapToLong(itemICart -> itemICart.price() * itemICart.count())
 				.sum();
-
-		return new CartDTO(itemsInCartDTO, total);
 	}
 
-	default void setCountToItem(Cart cart, ItemInCartDTO itemDTO) {
-		if (cart.getCartItems() != null) {
-			cart.getCartItems().forEach(itemInCart -> {
-				if (itemInCart.getItem().getId() == itemDTO.getId()) {
-					itemDTO.setCount(itemInCart.getCount());
-				}
-			});
+	public List<ItemInCartDTO> buildItemDTOs(List<CartItem> items, Map<Long, Item> itemMap, ServerWebExchange exchange) {
+		return items.stream()
+				.map(item -> createCartItemDTO(item, itemMap.get(item.getItemId()), exchange))
+				.collect(Collectors.toList());
+	}
+
+	private ItemInCartDTO createCartItemDTO(CartItem cartItem, Item item, ServerWebExchange exchange) {
+		return new ItemInCartDTO(
+				item.getId(),
+				item.getTitle(),
+				item.getDescription(),
+				setImgUrl(item, exchange),
+				item.getPrice(),
+				cartItem.getCount()
+		);
+	}
+
+	private String setImgUrl(Item item, ServerWebExchange exchange) {
+		String host = exchange.getRequest().getURI().getHost();
+		int port = exchange.getRequest().getURI().getPort();
+
+		String serverUri = "/" + host;
+		if (port != -1 && port != 80 && port != 443) {
+			serverUri = serverUri + ":" + port;
 		}
-	}
 
-	default void setImgUrl(List<ItemInCartDTO> items, HttpServletRequest request) {
-		items.forEach(item -> setImgUrl(item, request));
-	}
-
-	default void setImgUrl(ItemInCartDTO item, HttpServletRequest request) {
-		String imageUrl = getBaseUrl(request) + item.getImgPath();
-		item.setImgPath(imageUrl);
+		return serverUri + item.getImgPath();
 	}
 }
