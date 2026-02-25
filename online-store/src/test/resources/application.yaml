@@ -1,0 +1,6 @@
+# Database configuration
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=market
+    username: postgres
+    password: password
