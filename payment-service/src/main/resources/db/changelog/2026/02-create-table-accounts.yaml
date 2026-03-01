@@ -1,0 +1,25 @@
+databaseChangeLog:
+- changeSet:
+    id: 2
+    author: o.goncharenko
+    changes:
+      - createTable:
+          tableName: accounts
+          schemaName: payment
+          columns:
+            - column:
+                name: id
+                type: BIGSERIAL
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: user_name
+                type: VARCHAR(50)
+            - column:
+                name: balance
+                type: BIGINT
+    rollback:
+      - dropTable:
+          tableName: accounts
+          schemaName: payment
