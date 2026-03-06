@@ -172,9 +172,9 @@
                         <configuration>
                             <inputSpec>${project.parent.basedir}/api-spec.yaml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>ru.goncharenko.payment.controller</apiPackage>
-                            <invokerPackage>ru.goncharenko.payment</invokerPackage>
-                            <modelPackage>ru.goncharenko.payment.model</modelPackage>
+                            <apiPackage>ru.goncharenko.payment.generated.controller</apiPackage>
+                            <invokerPackage>ru.goncharenko.payment.generated</invokerPackage>
+                            <modelPackage>ru.goncharenko.payment.generated.model</modelPackage>
 
                             <!-- Параметры для пропуска генерации тестов -->
                             <generateApiTests>false</generateApiTests>
