@@ -9,16 +9,24 @@ databaseChangeLog:
           columns:
             - column:
                 name: id
-                type: BIGSERIAL
+                type: bigserial
                 constraints:
                   primaryKey: true
                   nullable: false
             - column:
                 name: user_name
-                type: VARCHAR(50)
+                type: varchar(50)
+                constraints:
+                  nullable: false
             - column:
                 name: balance
-                type: BIGINT
+                type: double precision
+                constraints:
+                  nullable: false
+
+      - sql:
+          sql: ALTER TABLE payment.accounts ADD CONSTRAINT balance_non_negative CHECK (balance >= 0)
+
     rollback:
       - dropTable:
           tableName: accounts

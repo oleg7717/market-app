@@ -21,5 +21,5 @@ public class Account {
 	private String userName;
 
 	@Column("balance")
-	private String balance;
+	private Double balance;
 }
