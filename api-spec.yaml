@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: Payment API
+  description: Сервис совершения платежей
+  version: 0.0.1
+paths:
+  /api/balance:
+    get:
+      summary: Подтверждение баланса пользователя
+      description: Получить подтверждение, что на балансе пользователя достаточно средств для осуществления покупки
+      parameters:
+        - name: userName
+          description: Логин пользователя
+          in: query
+          required: true
+          schema:
+            type: string
+#        - name: orderAmount
+#          description: Сумма заказа
+#          in: query
+#          required: true
+#          schema:
+#            type: integer
+      responses:
+        '200':
+          description: Баланс счета получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: double
+                    example: 238731.17
+    post:
+      summary: Осуществление платежа
+      description: Осуществление платежа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      responses:
+        200:
+          description: Платеж осуществлен
+
+components:
+  schemas:
+    Payment:
+      type: object
+      properties:
+        userName:
+          type: string
+          example: 1
+        orderAmount:
+          type: number
+          format: double
+          example: 150.00

@@ -15,6 +15,11 @@
         <!-- Spring Boot Framework -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
@@ -28,10 +33,32 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Apache HTTPClient 5 -->
+<!--        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
+        &lt;!&ndash; Jakarta Validation API &ndash;&gt;
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        &lt;!&ndash; Swagger Annotations v3 &ndash;&gt;
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>-->
+
         <!-- WebFlux-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
         </dependency>
 
         <!-- Стартер для Spring Data R2DBC -->
@@ -107,6 +134,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
                         </path>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -124,9 +152,44 @@
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.parent.basedir}/api-spec.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <apiPackage>ru.goncharenko.market.payment.client</apiPackage>
+                            <invokerPackage>ru.goncharenko.market.payment</invokerPackage>
+                            <modelPackage>ru.goncharenko.market.payment.model</modelPackage>
+
+                            <!-- Параметры для пропуска генерации тестов -->
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+
+                            <!-- Также можно пропустить документацию (опционально) -->
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+
+                            <configOptions>
+                                <library>webclient</library>
+                                <!-- Включаем поддержку пакетов Jakarta EE вместо javax -->
+                                <useJakartaEe>true</useJakartaEe>
+                                <!-- Отключаем использование библиотеки OpenAPI Jackson Nullable -->
+                                <openApiNullable>false</openApiNullable>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
