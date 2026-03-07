@@ -40,6 +40,14 @@ public class RedisConfig {
 										RedisSerializationContext.SerializationPair.fromSerializer(
 												new GenericJackson2JsonRedisSerializer()
 										)
+								))
+				.withCacheConfiguration("items",
+						RedisCacheConfiguration.defaultCacheConfig()
+								.entryTtl(Duration.of(1, ChronoUnit.MINUTES))
+								.serializeValuesWith(
+										RedisSerializationContext.SerializationPair.fromSerializer(
+												new GenericJackson2JsonRedisSerializer()
+										)
 								));
 	}
 }

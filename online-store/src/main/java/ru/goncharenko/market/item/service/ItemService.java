@@ -8,7 +8,6 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 import ru.goncharenko.market.core.response.Paging;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
@@ -40,31 +39,25 @@ public class ItemService {
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort.getFieldName()));
 
 		return Mono.zip(
-						getItemsPage(search, pageable),
+						cacheService.getItemsPage(search, pageable),
+						getItemsPage(search),
 						cartService.getOrCreateCart()
 				)
 				.flatMap(tuple -> {
-					List<Item> items = tuple.getT1().getT1();
-					long total = tuple.getT1().getT2();
-					Cart cart = tuple.getT2();
+					List<Item> items = tuple.getT1();
+					long total = tuple.getT2();
+					Cart cart = tuple.getT3();
 
 					return getItemCounts(cart.getId(), items)
 							.map(counts -> buildResponse(items, counts, page, size, total, exchange));
 				});
 	}
 
-	private Mono<Tuple2<List<Item>, Long>> getItemsPage(String search, Pageable pageable) {
+	private Mono<Long> getItemsPage(String search) {
 		if (search == null || search.isEmpty()) {
-			return Mono.zip(
-					itemRepository.findAllBy(pageable).collectList(),
-					itemRepository.count()
-			);
+			return itemRepository.count();
 		} else {
-			return Mono.zip(
-					itemRepository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable)
-							.collectList(),
-					itemRepository.countByDescriptionOrTitleContainingIgnoreCase(search)
-			);
+			return itemRepository.countByDescriptionOrTitleContainingIgnoreCase(search);
 		}
 	}
 
@@ -96,7 +89,10 @@ public class ItemService {
 				.build();
 	}
 
-	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size, ServerWebExchange exchange) {
+	private List<List<ItemInCartDTO>> groupItems(List<Item> items,
+	                                             Map<Long, Integer> counts,
+	                                             int size,
+	                                             ServerWebExchange exchange) {
 		int groupSize = Math.min(size, 3);
 		List<List<ItemInCartDTO>> result = new ArrayList<>();
 

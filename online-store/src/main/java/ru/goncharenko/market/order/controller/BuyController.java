@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class BuyController {
+	// ToDo реализовать запрос в Payment сервис и перенос корзины в заказы при успешной оплате
 	@PostMapping(path = "/path")
 	public String buy(long id) {
 		return String.format("redirect:/orders/%s?newOrder=true", id);
