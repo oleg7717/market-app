@@ -61,9 +61,9 @@ public class ItemService {
 			);
 		} else {
 			return Mono.zip(
-					itemRepository.findByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(search, search, pageable)
+					itemRepository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable)
 							.collectList(),
-					itemRepository.countByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(search, search)
+					itemRepository.countByDescriptionOrTitleContainingIgnoreCase(search)
 			);
 		}
 	}

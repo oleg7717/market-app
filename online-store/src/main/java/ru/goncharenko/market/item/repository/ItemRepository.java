@@ -15,9 +15,17 @@ public interface ItemRepository extends ReactiveCrudRepository<Item, Long> {
 
 	Flux<Item> findAllBy(Pageable pageable);
 
+	default Flux<Item> findByDescriptionOrTitleContainingIgnoreCase(String search, Pageable pageable) {
+		return findByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(search, search, pageable);
+	}
+
 	Flux<Item> findByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(String description, String title, Pageable pageable);
 
 	Mono<Long> count();
+
+	default Mono<Long> countByDescriptionOrTitleContainingIgnoreCase(String search) {
+		return countByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(search, search);
+	}
 
 	Mono<Long> countByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(String description, String title);
 }

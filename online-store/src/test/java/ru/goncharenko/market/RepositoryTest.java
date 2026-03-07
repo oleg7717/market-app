@@ -50,11 +50,10 @@ public class RepositoryTest extends IntegrationTest {
 		Pageable pageable = PageRequest.of(0, 10);
 
 		StepVerifier.create(
-						itemRepository.findByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(
-										searchTerm, searchTerm, pageable)
+						itemRepository.findByDescriptionOrTitleContainingIgnoreCase(
+										searchTerm, pageable)
 								.collectList()
-								.zipWith(itemRepository.countByDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(
-										searchTerm, searchTerm))
+								.zipWith(itemRepository.countByDescriptionOrTitleContainingIgnoreCase(searchTerm))
 				)
 				.assertNext(tuple -> {
 					List<Item> items = tuple.getT1();
