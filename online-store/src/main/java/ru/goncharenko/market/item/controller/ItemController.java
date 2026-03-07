@@ -66,7 +66,7 @@ public class ItemController {
 
 	@GetMapping(path = "/items/{id}")
 	public Mono<Rendering> index(@PathVariable(name = "id") long id, ServerWebExchange exchange) {
-		return itemService.findById(id, exchange).flatMap(item ->
+		return itemService.findItem(id, exchange).flatMap(item ->
 				Mono.just(Rendering.view("item")
 						.modelAttribute("item", item)
 						.build())
@@ -78,7 +78,7 @@ public class ItemController {
 	                                                     ServerWebExchange exchange) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
 				.then(
-						itemService.findById(request.getId(), exchange).flatMap(item ->
+						itemService.findItem(request.getId(), exchange).flatMap(item ->
 								Mono.just(Rendering.view("item")
 										.modelAttribute("item", item)
 										.build())

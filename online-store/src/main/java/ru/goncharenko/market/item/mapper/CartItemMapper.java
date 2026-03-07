@@ -58,13 +58,13 @@ public class CartItemMapper {
 				item.getId(),
 				item.getTitle(),
 				item.getDescription(),
-				setImgUrl(item, exchange),
+				getImgUrl(exchange) + item.getImgPath(),
 				item.getPrice(),
 				cartItem.getCount()
 		);
 	}
 
-	private String setImgUrl(Item item, ServerWebExchange exchange) {
+	public static String getImgUrl(ServerWebExchange exchange) {
 		String host = exchange.getRequest().getURI().getHost();
 		int port = exchange.getRequest().getURI().getPort();
 
@@ -73,6 +73,6 @@ public class CartItemMapper {
 			serverUri = serverUri + ":" + port;
 		}
 
-		return serverUri + item.getImgPath();
+		return serverUri;
 	}
 }
