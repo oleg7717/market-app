@@ -6,7 +6,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 import ru.goncharenko.market.core.exception.ResourceNotFoundException;
+import ru.goncharenko.market.item.dto.ItemsListWithCount;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.ItemRepository;
 
@@ -25,11 +27,21 @@ public class ItemCacheService {
 	}
 
 	@Cacheable(value = "items", key = "{#search, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
-	public Mono<List<Item>> getItemsPage(String search, Pageable pageable) {
+	public Mono<ItemsListWithCount> getItemsPage(String search, Pageable pageable) {
+		Mono<Tuple2<List<Item>, Long>> items;
 		if (search == null || search.isEmpty()) {
-			return repository.findAllBy(pageable).collectList();
+			items = Mono.zip(
+					repository.findAllBy(pageable).collectList(),
+					repository.count()
+			);
 		} else {
-			return repository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable).collectList();
+			items = Mono.zip(
+					repository.findByDescriptionOrTitleContainingIgnoreCase(search, pageable)
+							.collectList(),
+					repository.countByDescriptionOrTitleContainingIgnoreCase(search)
+			);
 		}
+
+		return items.map(tuple -> new ItemsListWithCount(tuple.getT1(), tuple.getT2()));
 	}
 }

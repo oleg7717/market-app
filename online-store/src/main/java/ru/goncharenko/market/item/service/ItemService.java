@@ -17,7 +17,6 @@ import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.CartItemRepository;
-import ru.goncharenko.market.item.repository.ItemRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +27,6 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class ItemService {
-	private final ItemRepository itemRepository;
 	private final ItemCacheService cacheService;
 	private final CartItemRepository cartItemRepository;
 	private final CartService cartService;
@@ -40,25 +38,16 @@ public class ItemService {
 
 		return Mono.zip(
 						cacheService.getItemsPage(search, pageable),
-						getItemsPage(search),
 						cartService.getOrCreateCart()
 				)
 				.flatMap(tuple -> {
-					List<Item> items = tuple.getT1();
-					long total = tuple.getT2();
-					Cart cart = tuple.getT3();
+					List<Item> items = tuple.getT1().getItems();
+					long total = tuple.getT1().getCount();
+					Cart cart = tuple.getT2();
 
 					return getItemCounts(cart.getId(), items)
 							.map(counts -> buildResponse(items, counts, page, size, total, exchange));
 				});
-	}
-
-	private Mono<Long> getItemsPage(String search) {
-		if (search == null || search.isEmpty()) {
-			return itemRepository.count();
-		} else {
-			return itemRepository.countByDescriptionOrTitleContainingIgnoreCase(search);
-		}
 	}
 
 	private Mono<Map<Long, Integer>> getItemCounts(Long cartId, List<Item> items) {

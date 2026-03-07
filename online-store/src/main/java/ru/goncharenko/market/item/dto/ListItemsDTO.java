@@ -1,6 +1,5 @@
 package ru.goncharenko.market.item.dto;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +11,6 @@ import java.util.List;
 @Setter
 @Getter
 @Builder
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class ListItemsDTO implements ApiResponse {
 	private List<List<ItemInCartDTO>> items;
 	private Paging paging;
