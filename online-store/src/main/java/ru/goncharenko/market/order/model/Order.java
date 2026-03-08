@@ -1,5 +1,7 @@
 package ru.goncharenko.market.order.model;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -7,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.goncharenko.market.order.enums.OrderStatus;
 
 @Table(name = "orders")
 @Setter
@@ -18,7 +21,8 @@ public class Order {
 	private Long id;
 
 	@Column("total_sum")
-	private Long totalSum;
+	private Double totalSum;
 
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private OrderStatus status;
 }

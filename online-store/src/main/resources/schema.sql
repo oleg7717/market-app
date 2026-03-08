@@ -5,7 +5,7 @@ CREATE TABLE if not exists items (
   title varchar(50) NOT NULL,
   description varchar(255) NULL,
   img_path varchar(255) NULL,
-  price int8 NULL,
+  price double precision NULL,
   CONSTRAINT items_pkey PRIMARY KEY (id),
   CONSTRAINT items_title_unique UNIQUE (title)
 );
@@ -31,7 +31,7 @@ ALTER TABLE cart_item
 
 CREATE TABLE if not exists orders (
    id BIGSERIAL NOT NULL,
-   total_sum int8 NOT NULL,
+   total_sum double precision NOT NULL,
    status varchar(10) NOT NULL DEFAULT 'NEW',
    CONSTRAINT orders_pkey PRIMARY KEY (id)
 );

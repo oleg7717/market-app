@@ -20,6 +20,6 @@ public class ItemInCartDTO {
 	String title;
 	String description;
 	String imgPath;
-	long price;
+	double price;
 	int count;
 }

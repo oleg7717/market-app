@@ -6,4 +6,6 @@ import ru.goncharenko.market.item.model.Cart;
 
 public interface CartRepository extends ReactiveCrudRepository<Cart, Long> {
 	Mono<Cart> findCartByUserName(String userName);
+
+	Mono<Void> deleteByUserName(String userName);
 }

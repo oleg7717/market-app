@@ -27,5 +27,5 @@ public class Item {
 	private String imgPath;
 
 	@Column("price")
-	private Long price;
+	private Double price;
 }

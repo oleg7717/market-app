@@ -1,4 +1,4 @@
-package ru.goncharenko.payment.util;
+package ru.goncharenko.payment.controller;
 
 import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;

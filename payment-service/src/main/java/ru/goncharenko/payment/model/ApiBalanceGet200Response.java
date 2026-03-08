@@ -1,4 +1,4 @@
-package ru.goncharenko.payment.response;
+package ru.goncharenko.payment.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;

@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemsListWithCount {
+public class ItemContext {
 	private List<Item> items;
 	private Long count;
 }

@@ -14,8 +14,8 @@ on conflict do nothing;
 
 truncate carts restart identity cascade;
 insert into carts (user_name) values
-('anonymous'),
-('user1')
+('oleg'),
+('anonymous')
 on conflict do nothing;
 
 truncate cart_item restart identity cascade;

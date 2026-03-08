@@ -33,7 +33,7 @@ public class CartItemMapper {
 		Map<Long, Item> itemMap = context.getItemMap();
 
 		List<ItemInCartDTO> itemDTOs = buildItemDTOs(items, itemMap, exchange);
-		long total = calculateTotal(itemDTOs);
+		Double total = calculateTotal(itemDTOs);
 
 		return new CartDTO(
 				itemDTOs,
@@ -41,9 +41,9 @@ public class CartItemMapper {
 		);
 	}
 
-	private long calculateTotal(List<ItemInCartDTO> items) {
-		return items.stream()
-				.mapToLong(itemICart -> itemICart.price() * itemICart.count())
+	private Double calculateTotal(List<ItemInCartDTO> items) {
+		return (double) items.stream()
+				.mapToLong(itemICart -> (long) (itemICart.price() * itemICart.count()))
 				.sum();
 	}
 

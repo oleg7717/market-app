@@ -3,6 +3,9 @@ info:
   title: Payment API
   description: Сервис совершения платежей
   version: 0.0.1
+servers:
+  - url: http://localhost:8081
+    description: Local development server
 paths:
   /api/balance:
     get:

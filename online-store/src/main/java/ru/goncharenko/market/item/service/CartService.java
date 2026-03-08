@@ -28,7 +28,7 @@ public class CartService {
 	private final ItemRepository itemRepository;
 	private final CartItemMapper mapper;
 
-	private final String userName = "anonymous";
+	private final String userName = "oleg";
 
 	@Transactional
 	public Mono<Cart> getOrCreateCart() {
@@ -39,6 +39,7 @@ public class CartService {
 		}));
 	}
 
+	// ToDo получать товары в корзине из кэша
 	@Transactional
 	public Mono<CartDTO> getItemsInCart(ServerWebExchange exchange) {
 		return getOrCreateCart()

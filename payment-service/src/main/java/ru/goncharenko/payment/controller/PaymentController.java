@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.goncharenko.payment.response.ApiBalanceGet200Response;
+import ru.goncharenko.payment.model.ApiBalanceGet200Response;
 import ru.goncharenko.payment.model.Payment;
 import ru.goncharenko.payment.service.AccountService;
 
@@ -34,7 +34,7 @@ public class PaymentController implements PaymentApi {
 
 	@Override
 	public Mono<ResponseEntity<String>> apiBalancePost(
-			@Parameter(name = "Payment", required = true) @Valid @RequestBody Payment payment,
+			@Parameter(name = "Payment", required = true) @Valid @RequestBody Mono<Payment> payment,
 			@Parameter(hidden = true) final ServerWebExchange exchange
 	) {
 		return service.makePayment(payment);

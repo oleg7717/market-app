@@ -13,5 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class CartDTO {
 	private List<ItemInCartDTO> items;
-	private long total;
+	private Double total;
 }

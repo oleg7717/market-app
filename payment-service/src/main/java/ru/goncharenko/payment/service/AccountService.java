@@ -9,7 +9,10 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.payment.model.Payment;
 import ru.goncharenko.payment.repository.AccountRepository;
-import ru.goncharenko.payment.response.ApiBalanceGet200Response;
+import ru.goncharenko.payment.model.ApiBalanceGet200Response;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
@@ -26,25 +29,31 @@ public class AccountService {
 	}
 
 	@Transactional
-	public Mono<ResponseEntity<String>> makePayment(Payment payment) {
-		String userName = payment.getUserName();
-		Double amount = payment.getOrderAmount() == null ? 0 : payment.getOrderAmount();
-		return repository.findByUserName(userName).flatMap(account -> {
-					Double balance = account.getBalance();
-					if (balance < amount) {
-						return Mono.just(ResponseEntity
-								.status(HttpStatus.PAYMENT_REQUIRED)
-								.body("There are insufficient funds in the account."));
-					}
-					account.setBalance(balance - amount);
-					return repository.save(account)
-							.map(savedAccount -> ResponseEntity.ok().body("Payment completed."));
-				})
-				.switchIfEmpty(
-						Mono.just(ResponseEntity
-								.status(HttpStatus.NOT_FOUND)
-								.body("Account for user: " + userName + " not found.")
-						)
-				);
+	public Mono<ResponseEntity<String>> makePayment(Mono<Payment> payment) {
+		return payment.flatMap(pay -> {
+			String userName = pay.getUserName();
+			Double amount = pay.getOrderAmount() == null ? 0 : pay.getOrderAmount();
+			return repository.findByUserName(userName).flatMap(account -> {
+						Double balance = account.getBalance();
+						if (balance < amount) {
+							return Mono.just(ResponseEntity
+									.status(HttpStatus.PAYMENT_REQUIRED)
+									.body("There are insufficient funds in the account."));
+						}
+						account.setBalance(BigDecimal.valueOf(balance)
+								.subtract(BigDecimal.valueOf(amount))
+								.setScale(2, RoundingMode.HALF_UP)
+								.doubleValue()
+						);
+						return repository.save(account)
+								.map(savedAccount -> ResponseEntity.ok().body("Payment completed."));
+					})
+					.switchIfEmpty(
+							Mono.just(ResponseEntity
+									.status(HttpStatus.NOT_FOUND)
+									.body("Account for user: " + userName + " not found.")
+							)
+					);
+		});
 	}
 }
