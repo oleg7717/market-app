@@ -21,13 +21,13 @@ services:
     volumes:
       - redis_data:/data
 
-  backend:
+  payment-service:
     build: ./payment-service
     image: payment-service:latest
     container_name: payment-service
     restart: no
     ports:
-      - "8082:8082"
+      - "8081:8081"
     environment:
       # Liquibase переменные
       SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=payment
@@ -40,6 +40,22 @@ services:
     depends_on:
       - postgres
       - redis
+
+  online-store:
+    build: ./online-store
+    image: online-store:latest
+    container_name: online-store
+    restart: no
+    ports:
+      - "8080:8080"
+    environment:
+      # Реактивное подключение к PostgreSQL
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=payment
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: password
+      # Подключение к Redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
 
 volumes:
   postgres_data:

@@ -163,14 +163,12 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <!--<version>3.1.5</version>-->
                 <configuration>
                     <mainClass>ru.goncharenko.payment.PaymentApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <!--<version>${lombok.version}</version>-->
                         </exclude>
                     </excludes>
                 </configuration>

@@ -11,7 +11,7 @@ ENV SPRING_PROFILES_ACTIVE=prod
 COPY /target/*.jar app.jar
 
 # Expose the application port (default Spring Boot is 8080)
-EXPOSE 8081
+EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
