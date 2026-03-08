@@ -21,3 +21,6 @@ spring:
     init:
       mode: always
       data-locations: classpath:data.sql
+
+server:
+  port: 8082

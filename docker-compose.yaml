@@ -22,16 +22,21 @@ services:
       - redis_data:/data
 
   backend:
-    build: .
-    container_name: market
+    build: ./payment-service
+    image: payment-service:latest
+    container_name: payment-service
     restart: no
     ports:
-      - "8080:8080"
+      - "8082:8082"
     environment:
-      # Spring переменные
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
-      SPRING_DATASOURCE_USERNAME: <user_placeholder>
-      SPRING_DATASOURCE_PASSWORD: <password_placeholder>
+      # Liquibase переменные
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=payment
+      SPRING_LIQUIBASE_USERNAME: postgres
+      SPRING_LIQUIBASE_PASSWORD: password
+      # Реактивное подключение к PostgreSQL
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=payment
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: password
     depends_on:
       - postgres
       - redis
