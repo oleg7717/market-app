@@ -1,9 +1,10 @@
 package ru.goncharenko.market.order.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,7 @@ import ru.goncharenko.market.payment.model.Payment;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PurchaseService {
@@ -31,15 +33,14 @@ public class PurchaseService {
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
 	private final CartRepository cartRepository;
+	private final TransactionalOperator transactionalOperator;
 	private final String userName = "oleg";
 
 	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
 		return new DefaultApi().apiBalanceGet(userName)
 				.map(response -> Objects.requireNonNull(response.getBalance()) > orderAmount);
 	}
-
-	// ToDo коректное вычитание из double
-	@Transactional
+	// ToDo проверка по статусу 200 факт оплаты
 	public Flux<OrderDTO> makePayment(ServerWebExchange exchange) {
 		Mono<CartDTO> cartDTO = cartService.getItemsInCart(exchange);
 		return cartDTO.flatMapMany(itemsInCart -> {
@@ -66,6 +67,7 @@ public class PurchaseService {
 										.toList();
 
 								return orderItemRepository.saveAll(orderedItems)
+										.as(transactionalOperator::transactional)
 										.thenMany(cartRepository.deleteByUserName(userName))
 										.thenMany(orderService.findById(orderId));
 							});

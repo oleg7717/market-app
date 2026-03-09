@@ -18,7 +18,7 @@ public class OrderMapper {
 		Map<String, Object> firstRow = rows.getFirst();
 		OrderDTO orderDto = new OrderDTO();
 		orderDto.id(((Number) firstRow.get("order_id")).longValue());
-		orderDto.totalSum(((Number) firstRow.get("total_sum")).longValue());
+		orderDto.totalSum(((Number) firstRow.get("total_sum")).doubleValue());
 
 		List<ItemInOrderDTO> items = new ArrayList<>();
 
@@ -27,7 +27,7 @@ public class OrderMapper {
 				ItemInOrderDTO itemDto = new ItemInOrderDTO();
 				itemDto.id(((Number) row.get("item_id")).longValue());
 				itemDto.title((String) row.get("title"));
-				itemDto.price(((Number) row.get("price")).longValue());
+				itemDto.price(((Number) row.get("price")).doubleValue());
 				itemDto.count(((Number) row.get("count")).intValue());
 
 				items.add(itemDto);

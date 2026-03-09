@@ -14,6 +14,6 @@ import lombok.experimental.Accessors;
 public class ItemInOrderDTO {
 	long id;
 	String title;
-	long price;
+	Double price;
 	int count;
 }

@@ -15,7 +15,6 @@ import ru.goncharenko.market.order.service.PurchaseService;
 @RequiredArgsConstructor
 public class PurchaseController {
 	private final PurchaseService service;
-	// ToDo реализовать запрос в Payment сервис и перенос корзины в заказы при успешной оплате
 
 	@GetMapping(path = "/buy")
 	public Mono<Boolean> buy(String userName, Double orderAmount) {
