@@ -1,6 +1,7 @@
 package ru.goncharenko.market.item.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ServerWebExchange;
@@ -11,21 +12,16 @@ import ru.goncharenko.market.item.dto.CartDTO;
 import ru.goncharenko.market.item.mapper.CartItemMapper;
 import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
-import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.CartItemRepository;
 import ru.goncharenko.market.item.repository.CartRepository;
-import ru.goncharenko.market.item.repository.ItemRepository;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CartService {
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
-	private final ItemRepository itemRepository;
+	private final ItemCacheService cacheService;
 	private final CartItemMapper mapper;
 
 	private final String userName = "oleg";
@@ -39,7 +35,6 @@ public class CartService {
 		}));
 	}
 
-	// ToDo получать товары в корзине из кэша
 	@Transactional
 	public Mono<CartDTO> getItemsInCart(ServerWebExchange exchange) {
 		return getOrCreateCart()
@@ -55,39 +50,35 @@ public class CartService {
 			return Mono.just(context);
 		}
 
-		return loadItemsMap(context.getItems())
+		return cacheService.loadItemsFromCache(context)
+				.flatMap(cachedItems -> {
+					if (!cachedItems.isEmpty()) {
+						return Mono.just(cachedItems);
+					}
+
+					return cacheService.loadItemsFromDbAndCache(context);
+				})
 				.map(itemsMap -> {
 					context.setItemMap(itemsMap);
 					return context;
 				});
 	}
 
-	private Mono<Map<Long, Item>> loadItemsMap(List<CartItem> items) {
-		List<Long> itemIds = extractItemIds(items);
-		return itemRepository.findAllByIdIn(itemIds)
-				.collectMap(Item::getId);
-	}
-
-	private List<Long> extractItemIds(List<CartItem> items) {
-		return items.stream()
-				.map(CartItem::getItemId)
-				.collect(Collectors.toList());
-	}
-
 	@Transactional
 	public Mono<Void> changeItemsCountFromCart(long id, ActionEnum action) {
 		return getOrCreateCart()
 				.flatMap(cart -> switch (action) {
-					case MINUS -> decreaseItemCount(cart.getId(), id);
-					case PLUS -> increaseItemCount(cart.getId(), id);
+					case MINUS -> decreaseItemCount(cart, id);
+					case PLUS -> increaseItemCount(cart, id);
 				});
 	}
 
-	private Mono<Void> decreaseItemCount(Long cartId, Long itemId) {
-		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
+	private Mono<Void> decreaseItemCount(Cart cart, Long itemId) {
+		return cartItemRepository.findByCartIdAndItemId(cart.getId(), itemId)
 				.switchIfEmpty(Mono.empty())
 				.flatMap(cartItem -> {
 					if (cartItem.getCount() == 1) {
+						cacheService.removeItemInCartFromCache(itemId, cart.getUserName()).subscribe();
 						return cartItemRepository.delete(cartItem);
 					} else {
 						cartItem.setCount(cartItem.getCount() - 1);
@@ -97,13 +88,15 @@ public class CartService {
 				.then();
 	}
 
-	private Mono<Void> increaseItemCount(Long cartId, Long itemId) {
+	private Mono<Void> increaseItemCount(Cart cart, Long itemId) {
+		Long cartId = cart.getId();
 		return cartItemRepository.findByCartIdAndItemId(cartId, itemId)
 				.flatMap(cartItem -> {
 					cartItem.setCount(cartItem.getCount() + 1);
 					return cartItemRepository.save(cartItem);
 				})
 				.switchIfEmpty(Mono.defer(() -> {
+					cacheService.addItemInCartToCache(itemId, cart.getUserName()).subscribe();
 					CartItem newCartItem = new CartItem();
 					newCartItem.setCartId(cartId);
 					newCartItem.setItemId(itemId);
