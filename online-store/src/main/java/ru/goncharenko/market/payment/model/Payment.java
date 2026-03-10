@@ -20,13 +20,13 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.Objects;
 
 /**
- * Payment
+ * Параметры запроса на списание средств
  */
 @JsonPropertyOrder({
   Payment.JSON_PROPERTY_USER_NAME,
   Payment.JSON_PROPERTY_ORDER_AMOUNT
 })
-@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2026-03-05T20:09:49.061497400+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2026-03-10T20:48:17.154035700+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
 public class Payment {
   public static final String JSON_PROPERTY_USER_NAME = "userName";
   @jakarta.annotation.Nullable

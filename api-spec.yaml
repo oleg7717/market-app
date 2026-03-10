@@ -18,24 +18,22 @@ paths:
           required: true
           schema:
             type: string
-#        - name: orderAmount
-#          description: Сумма заказа
-#          in: query
-#          required: true
-#          schema:
-#            type: integer
+            example: oleg
+        - name: orderAmount
+          description: Сумма заказа
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            example: 238731.17
       responses:
         '200':
           description: Баланс счета получен
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  balance:
-                    type: number
-                    format: double
-                    example: 238731.17
+                $ref: '#/components/schemas/PaymentStatus'
     post:
       summary: Осуществление платежа
       description: Осуществление платежа
@@ -51,11 +49,21 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/PaymentStatus'
 components:
   schemas:
+    PaymentStatus:
+      type: object
+      properties:
+        message:
+          type: string
+        processed:
+          type: boolean
+        code:
+          type: integer
     Payment:
       type: object
+      description: Параметры запроса на списание средств
       properties:
         userName:
           type: string

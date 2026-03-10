@@ -8,10 +8,11 @@ import org.springframework.lang.Nullable;
 import java.util.Objects;
 
 /**
- * Payment
+ * Параметры запроса на списание средств
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-03-05T19:15:45.749903600+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
+@Schema(name = "Payment", description = "Параметры запроса на списание средств")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-03-10T20:41:32.954970400+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
 public class Payment {
 
   private @Nullable String userName;

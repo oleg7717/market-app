@@ -25,10 +25,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.goncharenko.payment.model.ApiBalanceGet200Response;
 import ru.goncharenko.payment.model.Payment;
+import ru.goncharenko.payment.model.PaymentStatus;
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-03-05T18:56:04.818676400+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-03-10T20:41:32.954970400+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
 @Validated
 @Tag(name = "api", description = "the api API")
 public interface PaymentApi {
@@ -39,6 +39,7 @@ public interface PaymentApi {
      * Получить подтверждение, что на балансе пользователя достаточно средств для осуществления покупки
      *
      * @param userName Логин пользователя (required)
+     * @param orderAmount Сумма заказа (required)
      * @return Баланс счета получен (status code 200)
      */
     @Operation(
@@ -47,24 +48,25 @@ public interface PaymentApi {
             description = "Получить подтверждение, что на балансе пользователя достаточно средств для осуществления покупки",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Баланс счета получен", content = {
-                            @Content(mediaType = "application/json", schema = @Schema(implementation = ApiBalanceGet200Response.class))
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = PaymentStatus.class))
                     })
             }
     )
     @RequestMapping(
             method = RequestMethod.GET,
-            value = PaymentApi.PATH_API_BALANCE_GET,
+            value = ru.goncharenko.payment.controller.PaymentApi.PATH_API_BALANCE_GET,
             produces = { "application/json" }
     )
-    default Mono<ResponseEntity<ApiBalanceGet200Response>> apiBalanceGet(
+    default Mono<ResponseEntity<PaymentStatus>> apiBalanceGet(
             @NotNull @Parameter(name = "userName", description = "Логин пользователя", required = true, in = ParameterIn.QUERY) @Valid @RequestParam(value = "userName", required = true) String userName,
+            @NotNull @Parameter(name = "orderAmount", description = "Сумма заказа", required = true, in = ParameterIn.QUERY) @Valid @RequestParam(value = "orderAmount", required = true) Double orderAmount,
             @Parameter(hidden = true) final ServerWebExchange exchange
     ) {
         Mono<Void> result = Mono.empty();
         exchange.getResponse().setStatusCode(HttpStatus.NOT_IMPLEMENTED);
         for (MediaType mediaType : exchange.getRequest().getHeaders().getAccept()) {
             if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                String exampleString = "{ \"balance\" : 238731.17 }";
+                String exampleString = "{ \"code\" : 0, \"message\" : \"message\", \"status\" : true }";
                 result = ApiUtil.getExampleResponse(exchange, MediaType.valueOf("application/json"), exampleString);
                 break;
             }
@@ -88,22 +90,29 @@ public interface PaymentApi {
             description = "Осуществление платежа",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Платеж осуществлен", content = {
-                            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = PaymentStatus.class))
                     })
             }
     )
     @RequestMapping(
             method = RequestMethod.POST,
-            value = PaymentApi.PATH_API_BALANCE_POST,
+            value = ru.goncharenko.payment.controller.PaymentApi.PATH_API_BALANCE_POST,
             produces = { "application/json" },
             consumes = { "application/json" }
     )
-    default Mono<ResponseEntity<String>> apiBalancePost(
+    default Mono<ResponseEntity<PaymentStatus>> apiBalancePost(
             @Parameter(name = "Payment", description = "", required = true) @Valid @RequestBody Mono<Payment> payment,
             @Parameter(hidden = true) final ServerWebExchange exchange
     ) {
         Mono<Void> result = Mono.empty();
         exchange.getResponse().setStatusCode(HttpStatus.NOT_IMPLEMENTED);
+        for (MediaType mediaType : exchange.getRequest().getHeaders().getAccept()) {
+            if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
+                String exampleString = "{ \"code\" : 0, \"message\" : \"message\", \"status\" : true }";
+                result = ApiUtil.getExampleResponse(exchange, MediaType.valueOf("application/json"), exampleString);
+                break;
+            }
+        }
         return result.then(payment).then(Mono.empty());
 
     }

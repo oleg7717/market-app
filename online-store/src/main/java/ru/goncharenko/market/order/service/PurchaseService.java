@@ -19,9 +19,9 @@ import ru.goncharenko.market.order.repository.OrderItemRepository;
 import ru.goncharenko.market.order.repository.OrderRepository;
 import ru.goncharenko.market.payment.client.DefaultApi;
 import ru.goncharenko.market.payment.model.Payment;
+import ru.goncharenko.market.payment.model.PaymentStatus;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Service
@@ -36,10 +36,10 @@ public class PurchaseService {
 	private final String userName = "oleg";
 
 	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
-		return new DefaultApi().apiBalanceGet(userName)
-				.map(response -> Objects.requireNonNull(response.getBalance()) > orderAmount);
+		return new DefaultApi().apiBalanceGet(userName, orderAmount)
+				.map(PaymentStatus::getProcessed);
 	}
-	// ToDo проверка по статусу 200 факт оплаты
+
 	public Flux<OrderDTO> makePayment() {
 		Mono<CartDTO> cartDTO = cartService.getItemsInCart();
 		return cartDTO.flatMapMany(itemsInCart -> {
@@ -48,7 +48,7 @@ public class PurchaseService {
 			payment.setUserName(userName);
 			payment.setOrderAmount(orderAmount);
 			return new DefaultApi().apiBalancePost(payment).flatMapMany(response -> {
-				if (response.equals("Payment completed.")) {
+				if (response.getProcessed()) {
 					Order newOrder = new Order();
 					newOrder.setTotalSum(orderAmount);
 					newOrder.setStatus(OrderStatus.ORDERED);

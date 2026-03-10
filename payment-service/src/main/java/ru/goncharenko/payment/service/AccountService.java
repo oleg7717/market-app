@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.payment.model.Payment;
+import ru.goncharenko.payment.model.PaymentStatus;
 import ru.goncharenko.payment.repository.AccountRepository;
-import ru.goncharenko.payment.model.ApiBalanceGet200Response;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,26 +19,41 @@ import java.math.RoundingMode;
 public class AccountService {
 	private final AccountRepository repository;
 
-	public Mono<ResponseEntity<ApiBalanceGet200Response>> getUserBalance(String userName) {
-		return repository.findByUserName(userName).map(account -> ResponseEntity.ok()
-						.body(new ApiBalanceGet200Response().balance(account.getBalance()))
+	public Mono<ResponseEntity<PaymentStatus>> getUserBalance(String userName, Double orderAmount) {
+		return repository.findByUserName(userName).flatMap(account -> {
+							Double balance = account.getBalance();
+							if (balance < orderAmount) {
+								return Mono.just(ResponseEntity.ok()
+										.body(new PaymentStatus()
+												.code(HttpStatus.PAYMENT_REQUIRED.value())
+												.message("Недостаточно средств на счету")
+												.processed(false)));
+							}
+							return Mono.just(ResponseEntity.ok()
+									.body(new PaymentStatus()
+											.code(HttpStatus.OK.value())
+											.message("Достаточно средств на счету")
+											.processed(true)));
+						}
 				)
 				.switchIfEmpty(Mono.error(new ResponseStatusException(
-						HttpStatus.NOT_FOUND, "Account for user: " + userName + " not found."
+						HttpStatus.NOT_FOUND, String.format("У пользователя %s нет счета в банке ", userName)
 				)));
 	}
 
 	@Transactional
-	public Mono<ResponseEntity<String>> makePayment(Mono<Payment> payment) {
+	public Mono<ResponseEntity<PaymentStatus>> makePayment(Mono<Payment> payment) {
 		return payment.flatMap(pay -> {
 			String userName = pay.getUserName();
 			Double amount = pay.getOrderAmount() == null ? 0 : pay.getOrderAmount();
 			return repository.findByUserName(userName).flatMap(account -> {
 						Double balance = account.getBalance();
 						if (balance < amount) {
-							return Mono.just(ResponseEntity
-									.status(HttpStatus.PAYMENT_REQUIRED)
-									.body("There are insufficient funds in the account."));
+							return Mono.just(ResponseEntity.ok()
+									.body(new PaymentStatus()
+											.code(HttpStatus.PAYMENT_REQUIRED.value())
+											.message("Недостаточно средств на счету")
+											.processed(false)));
 						}
 						account.setBalance(BigDecimal.valueOf(balance)
 								.subtract(BigDecimal.valueOf(amount))
@@ -46,14 +61,15 @@ public class AccountService {
 								.doubleValue()
 						);
 						return repository.save(account)
-								.map(savedAccount -> ResponseEntity.ok().body("Payment completed."));
+								.map(savedAccount -> ResponseEntity.ok()
+										.body(new PaymentStatus()
+												.code(HttpStatus.OK.value())
+												.message("Платёж совершён")
+												.processed(true)));
 					})
-					.switchIfEmpty(
-							Mono.just(ResponseEntity
-									.status(HttpStatus.NOT_FOUND)
-									.body("Account for user: " + userName + " not found.")
-							)
-					);
+					.switchIfEmpty(Mono.error(new ResponseStatusException(
+							HttpStatus.NOT_FOUND, String.format("У пользователя %s нет счета в банке ", userName)
+					)));
 		});
 	}
 }

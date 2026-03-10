@@ -12,36 +12,42 @@ import reactor.core.publisher.Mono;
 import ru.goncharenko.market.item.dto.ItemRequest;
 import ru.goncharenko.market.item.service.CartService;
 import ru.goncharenko.market.item.service.ImageUrlBuilder;
+import ru.goncharenko.market.order.service.PurchaseService;
 
 @Controller
 @RequestMapping(path = "/cart")
 @RequiredArgsConstructor
 public class CartController {
-	private final CartService service;
+	private final CartService cartService;
+	private final PurchaseService purchaseService;
 	private final ImageUrlBuilder imageUrlBuilder;
 
 	@GetMapping(path = "/items")
 	public Mono<Rendering> show(ServerWebExchange exchange) {
-		return service.getItemsInCart()
+		return cartService.getItemsInCart()
 				.map(cartDTO -> imageUrlBuilder.enrichCartDTOWithImageUrls(cartDTO, exchange))
 				.flatMap(cartDTO ->
-						Mono.just(Rendering.view("cart")
-								.modelAttribute("items", cartDTO.getItems())
-								.modelAttribute("total", cartDTO.getTotal())
-								.build())
+						purchaseService.isSufficientBalance("oleg", cartDTO.getTotal())
+								.flatMap(response -> Mono.just(Rendering.view("cart")
+										.modelAttribute("items", cartDTO.getItems())
+										.modelAttribute("total", cartDTO.getTotal())
+										.modelAttribute("canBuy", response)
+										.build()))
 				);
 	}
 
 	@PostMapping(path = "/items")
 	public Mono<Rendering> changeItemsCountFromCart(@ModelAttribute ItemRequest request, ServerWebExchange exchange) {
-		return service.changeItemsCountFromCart(request.getId(), request.getAction()).then(
-				service.getItemsInCart()
+		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
+				cartService.getItemsInCart()
 						.map(cartDTO -> imageUrlBuilder.enrichCartDTOWithImageUrls(cartDTO, exchange))
 						.flatMap(cartDTO ->
-								Mono.just(Rendering.view("cart")
-										.modelAttribute("items", cartDTO.getItems())
-										.modelAttribute("total", cartDTO.getTotal())
-										.build())
+								purchaseService.isSufficientBalance("oleg", cartDTO.getTotal())
+										.flatMap(response -> Mono.just(Rendering.view("cart")
+												.modelAttribute("items", cartDTO.getItems())
+												.modelAttribute("total", cartDTO.getTotal())
+												.modelAttribute("canBuy", response)
+												.build()))
 						)
 		);
 	}

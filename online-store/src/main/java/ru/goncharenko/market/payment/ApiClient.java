@@ -56,7 +56,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TimeZone;
 
-@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2026-03-05T20:09:49.061497400+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2026-03-10T20:48:17.154035700+03:00[GMT+03:00]", comments = "Generator version: 7.20.0")
 public class ApiClient extends JavaTimeFormatter {
     public enum CollectionFormat {
         CSV(","), TSV("\t"), SSV(" "), PIPES("|"), MULTI(null);
