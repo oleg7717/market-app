@@ -76,7 +76,8 @@ public class ApiClient extends JavaTimeFormatter {
     protected HttpHeaders defaultHeaders = new HttpHeaders();
     protected MultiValueMap<String, String> defaultCookies = new LinkedMultiValueMap<String, String>();
 
-    protected String basePath = "http://localhost:8081";
+    protected String basePath = "http://payment-service:8081";
+//    protected String basePath = "http://localhost:8081";
 
     protected final WebClient webClient;
     protected final DateFormat dateFormat;
