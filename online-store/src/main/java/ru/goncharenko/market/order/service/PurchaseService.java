@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.item.dto.CartDTO;
@@ -41,8 +40,8 @@ public class PurchaseService {
 				.map(response -> Objects.requireNonNull(response.getBalance()) > orderAmount);
 	}
 	// ToDo проверка по статусу 200 факт оплаты
-	public Flux<OrderDTO> makePayment(ServerWebExchange exchange) {
-		Mono<CartDTO> cartDTO = cartService.getItemsInCart(exchange);
+	public Flux<OrderDTO> makePayment() {
+		Mono<CartDTO> cartDTO = cartService.getItemsInCart();
 		return cartDTO.flatMapMany(itemsInCart -> {
 			Double orderAmount = itemsInCart.getTotal();
 			Payment payment = new Payment();

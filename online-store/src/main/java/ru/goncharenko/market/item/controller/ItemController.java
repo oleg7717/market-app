@@ -18,6 +18,7 @@ import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemRequest;
 import ru.goncharenko.market.item.service.CartService;
 import ru.goncharenko.market.item.service.FileService;
+import ru.goncharenko.market.item.service.ImageUrlBuilder;
 import ru.goncharenko.market.item.service.ItemService;
 
 @Controller
@@ -27,6 +28,7 @@ public class ItemController {
 	private final ItemService itemService;
 	private final CartService cartService;
 	private final FileService fileService;
+	private final ImageUrlBuilder imageUrlBuilder;
 
 	@GetMapping(path = {"/items", ""})
 	public Mono<Rendering> show(
@@ -37,7 +39,8 @@ public class ItemController {
 			@RequestParam(name = "pageSize", defaultValue = "5")
 			@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
 			ServerWebExchange exchange) {
-		return itemService.getItems(search, sort, pageNumber, pageSize, exchange)
+		return itemService.getItems(search, sort, pageNumber, pageSize)
+				.map(items -> imageUrlBuilder.enrichWithImageUrls(items, exchange))
 				.flatMap(item ->
 						Mono.just(Rendering.view("items")
 								.modelAttribute("items", item.getItems()).
@@ -66,19 +69,27 @@ public class ItemController {
 
 	@GetMapping(path = "/items/{id}")
 	public Mono<Rendering> index(@PathVariable(name = "id") long id, ServerWebExchange exchange) {
-		return itemService.findItem(id, exchange).flatMap(item ->
-				Mono.just(Rendering.view("item")
-						.modelAttribute("item", item)
-						.build())
-		);
+		return itemService.findItem(id)
+				.map(item -> {
+					item.imgPath(imageUrlBuilder.buildImageUrl(item.imgPath(), exchange));
+					return item;
+				}).flatMap(item ->
+						Mono.just(Rendering.view("item")
+								.modelAttribute("item", item)
+								.build())
+				);
 	}
 
 	@PostMapping(path = "/items/{id}")
 	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request,
 	                                                     ServerWebExchange exchange) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
-				.then(
-						itemService.findItem(request.getId(), exchange).flatMap(item ->
+				.then(itemService.findItem(request.getId())
+						.map(item -> {
+							// Обогащаем DTO URL изображения в контроллере
+							item.imgPath(imageUrlBuilder.buildImageUrl(item.imgPath(), exchange));
+							return item;
+						}).flatMap(item ->
 								Mono.just(Rendering.view("item")
 										.modelAttribute("item", item)
 										.build())

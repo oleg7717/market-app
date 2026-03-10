@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.core.response.Paging;
 import ru.goncharenko.market.core.types.SortEnum;
@@ -33,7 +32,7 @@ public class ItemService {
 	private final CartItemMapper mapper;
 	private final DatabaseClient databaseClient;
 
-	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size, ServerWebExchange exchange) {
+	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size) {
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort.getFieldName()));
 
 		return Mono.zip(
@@ -46,7 +45,7 @@ public class ItemService {
 					Cart cart = tuple.getT2();
 
 					return getItemCounts(cart.getId(), items)
-							.map(counts -> buildResponse(items, counts, page, size, total, exchange));
+							.map(counts -> buildResponse(items, counts, page, size, total));
 				});
 	}
 
@@ -69,8 +68,8 @@ public class ItemService {
 	}
 
 	private ListItemsDTO buildResponse(List<Item> items, Map<Long, Integer> counts,
-	                                   int page, int size, long total, ServerWebExchange exchange) {
-		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size, exchange);
+	                                   int page, int size, long total) {
+		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size);
 
 		return ListItemsDTO.builder()
 				.items(groupedItems)
@@ -78,10 +77,7 @@ public class ItemService {
 				.build();
 	}
 
-	private List<List<ItemInCartDTO>> groupItems(List<Item> items,
-	                                             Map<Long, Integer> counts,
-	                                             int size,
-	                                             ServerWebExchange exchange) {
+	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size) {
 		int groupSize = Math.min(size, 3);
 		List<List<ItemInCartDTO>> result = new ArrayList<>();
 
@@ -93,7 +89,6 @@ public class ItemService {
 				Item item = items.get(j);
 				ItemInCartDTO dto = mapper.toItemInCart(item);
 				dto.count(counts.getOrDefault(item.getId(), 0));
-				dto.imgPath(CartItemMapper.getImgUrl(exchange) + dto.imgPath());
 				group.add(dto);
 			}
 
@@ -110,14 +105,13 @@ public class ItemService {
 		return result;
 	}
 
-	public Mono<ItemInCartDTO> findItem(Long id, ServerWebExchange exchange) {
+	public Mono<ItemInCartDTO> findItem(Long id) {
 		return cartService.getOrCreateCart()
 				.flatMap(cart -> findItemWithCount(cart.getId(), id))
 				.flatMap(count -> cacheService.findCachedItemById(id)
 						.map(cachedItem -> {
 							ItemInCartDTO dto = mapper.toItemInCart(cachedItem);
 							dto.count(count);
-							dto.imgPath(CartItemMapper.getImgUrl(exchange) + dto.imgPath());
 							return dto;
 						}));
 	}

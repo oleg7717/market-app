@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartContext;
@@ -36,13 +35,13 @@ public class CartService {
 	}
 
 	@Transactional
-	public Mono<CartDTO> getItemsInCart(ServerWebExchange exchange) {
+	public Mono<CartDTO> getItemsInCart() {
 		return getOrCreateCart()
 				.flatMap(cart -> cartItemRepository.findAllByCartId(cart.getId())
 						.collectList()
 						.map(items -> new CartContext(cart, items)))
 				.flatMap(this::enrichItemsWithDetails)
-				.map(cartContext -> mapper.buildCartDTO(cartContext, exchange));
+				.map(mapper::buildCartDTO);
 	}
 
 	private Mono<CartContext> enrichItemsWithDetails(CartContext context) {
