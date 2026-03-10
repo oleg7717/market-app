@@ -27,6 +27,7 @@
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <spring-boot-maven-plugin.version>3.1.5</spring-boot-maven-plugin.version>
         <openapi-generator-maven-plugin.version>7.20.0</openapi-generator-maven-plugin.version>
+        <com.github.codemonstur.version>1.4.3</com.github.codemonstur.version>
     </properties>
 
     <modules>
@@ -79,6 +80,20 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>2.21.1</version>
                 <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.codemonstur</groupId>
+                <artifactId>embedded-redis</artifactId>
+                <version>${com.github.codemonstur.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>6.0.3</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
