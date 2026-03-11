@@ -100,8 +100,8 @@ public class ItemCacheService {
 				});
 	}
 
-	public Mono<Void> addItemInCartToCache(Long itemId, String UserName) {
-		String cacheKey = cartCachePrefix + UserName;
+	public Mono<Void> addItemInCartToCache(Long itemId, String userName) {
+		String cacheKey = cartCachePrefix + userName;
 		return redisTemplate.hasKey(cacheKey).flatMap(keyExists -> {
 							if (!keyExists) {
 								log.info("Cache key {} does not exist, skipping item {}", cacheKey, itemId);
@@ -117,12 +117,12 @@ public class ItemCacheService {
 				.then();
 	}
 
-	public Mono<Void> removeItemInCartFromCache(Long itemId, String UserName) {
-		String cacheKey = cartCachePrefix + UserName;
+	public Mono<Void> removeItemInCartFromCache(Long itemId, String userName) {
+		String cacheKey = cartCachePrefix + userName;
 		return redisTemplate.hasKey(cacheKey).flatMap(keyExists -> {
 							if (keyExists) {
 								return redisTemplate.opsForHash()
-										.remove(cartCachePrefix + UserName, itemId.toString());
+										.remove(cartCachePrefix + userName, itemId.toString());
 							}
 
 							return Mono.empty();
