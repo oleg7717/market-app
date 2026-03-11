@@ -5,6 +5,14 @@
 
    $ mvnw clean package
 
+2. Создать файл .env с настройками для docker-compose
+
+   POSTGRES_DB: <db_name>
+
+   POSTGRES_USER: <user_name>
+
+   POSTGRES_PASSWORD: <password> 
+
 3. Выполнить команду сборки и запуска docker контейнеров 
 
    $ docker compose up --build -d
