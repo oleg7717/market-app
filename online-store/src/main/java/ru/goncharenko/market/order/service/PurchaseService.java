@@ -17,7 +17,7 @@ import ru.goncharenko.market.order.model.Order;
 import ru.goncharenko.market.order.model.OrderItem;
 import ru.goncharenko.market.order.repository.OrderItemRepository;
 import ru.goncharenko.market.order.repository.OrderRepository;
-import ru.goncharenko.market.payment.client.DefaultApi;
+import ru.goncharenko.market.payment.client.ClientApi;
 import ru.goncharenko.market.payment.model.Payment;
 import ru.goncharenko.market.payment.model.PaymentStatus;
 
@@ -33,10 +33,12 @@ public class PurchaseService {
 	private final OrderItemRepository orderItemRepository;
 	private final CartRepository cartRepository;
 	private final TransactionalOperator transactionalOperator;
+	private final ClientApi clientApi;
+
 	private final String userName = "oleg";
 
 	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
-		return new DefaultApi().apiBalanceGet(userName, orderAmount)
+		return clientApi.defaultApi().apiBalanceGet(userName, orderAmount)
 				.map(PaymentStatus::getProcessed);
 	}
 
@@ -47,7 +49,7 @@ public class PurchaseService {
 			Payment payment = new Payment();
 			payment.setUserName(userName);
 			payment.setOrderAmount(orderAmount);
-			return new DefaultApi().apiBalancePost(payment).flatMapMany(response -> {
+			return clientApi.defaultApi().apiBalancePost(payment).flatMapMany(response -> {
 				if (response.getProcessed()) {
 					Order newOrder = new Order();
 					newOrder.setTotalSum(orderAmount);
