@@ -214,9 +214,9 @@
                         <configuration>
                             <inputSpec>${project.parent.basedir}/api-spec.yaml</inputSpec>
                             <generatorName>java</generatorName>
-                            <apiPackage>ru.goncharenko.market.generated.payment.client</apiPackage>
-                            <invokerPackage>ru.goncharenko.market.generated.payment</invokerPackage>
-                            <modelPackage>ru.goncharenko.market.generated.payment.model</modelPackage>
+                            <apiPackage>ru.goncharenko.market.payment.client</apiPackage>
+                            <invokerPackage>ru.goncharenko.market.payment</invokerPackage>
+                            <modelPackage>ru.goncharenko.market.payment.model</modelPackage>
 
                             <!-- Параметры для пропуска генерации тестов -->
                             <generateApiTests>false</generateApiTests>

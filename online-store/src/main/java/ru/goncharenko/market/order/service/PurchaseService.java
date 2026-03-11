@@ -17,7 +17,7 @@ import ru.goncharenko.market.order.model.Order;
 import ru.goncharenko.market.order.model.OrderItem;
 import ru.goncharenko.market.order.repository.OrderItemRepository;
 import ru.goncharenko.market.order.repository.OrderRepository;
-import ru.goncharenko.market.payment.client.ClientApi;
+import ru.goncharenko.market.item.util.ClientApi;
 import ru.goncharenko.market.payment.model.Payment;
 import ru.goncharenko.market.payment.model.PaymentStatus;
 
