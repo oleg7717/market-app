@@ -21,6 +21,7 @@ spring:
     init:
       mode: always
       data-locations: classpath:data.sql
+      continue-on-error: true
 
 server:
   port: 8081
