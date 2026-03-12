@@ -39,7 +39,8 @@ public class PurchaseService {
 
 	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
 		return clientApi.defaultApi().apiBalanceGet(userName, orderAmount)
-				.map(PaymentStatus::getProcessed);
+				.map(PaymentStatus::getProcessed)
+				.onErrorReturn(false);
 	}
 
 	public Flux<OrderDTO> makePayment() {
