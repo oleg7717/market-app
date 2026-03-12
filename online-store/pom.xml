@@ -237,17 +237,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <excludes>
-                        <!-- Исключить сгенерированные классы из JAR (используются модифицированные классы), так как реализация генерированных классов это нечто-->
-                        <exclude>ru/goncharenko/market/generated/**</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 

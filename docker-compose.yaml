@@ -11,15 +11,19 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   redis:
     image: redis:latest
-    container_name: redis-container
+    container_name: redis
     restart: no
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - app-network
 
   payment-service:
     build: ./payment-service
@@ -31,15 +35,17 @@ services:
     environment:
       # Liquibase переменные
       SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=payment
-      SPRING_LIQUIBASE_USERNAME: postgres
-      SPRING_LIQUIBASE_PASSWORD: password
+      SPRING_LIQUIBASE_USERNAME: ${POSTGRES_USER}
+      SPRING_LIQUIBASE_PASSWORD: ${POSTGRES_PASSWORD}
       # Реактивное подключение к PostgreSQL
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=payment
-      SPRING_R2DBC_USERNAME: postgres
-      SPRING_R2DBC_PASSWORD: password
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - postgres
       - redis
+    networks:
+      - app-network
 
   online-store:
     build: ./online-store
@@ -50,12 +56,18 @@ services:
       - "8080:8080"
     environment:
       # Реактивное подключение к PostgreSQL
-      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=payment
-      SPRING_R2DBC_USERNAME: postgres
-      SPRING_R2DBC_PASSWORD: password
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=market
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
       # Подключение к Redis
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
