@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: market
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=market
+    username: postgres
+    password: password
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+  data:
+    redis:
+      host: localhost
+      port: 6379

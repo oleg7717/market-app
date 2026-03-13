@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: o.goncharenko
+      changes:
+        - insert:
+            schemaName: payment
+            tableName: accounts
+            columns:
+              - column:
+                  name: user_name
+                  value: oleg
+              - column:
+                  name: balance
+                  valueNumeric: 273861.17
