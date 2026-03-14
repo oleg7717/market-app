@@ -51,3 +51,9 @@ insert into order_item (order_id, item_id, count) values
 (5, 1, 10),
 (5, 3, 1)
 on conflict do nothing;
+
+truncate users restart identity cascade;
+insert into users (user_name, status, password) values
+('oleg', 'ACTIVE', '$argon2id$v=19$m=16384,t=2,p=1$R+oQhdqj/PDqDFSiKmvJJw$BK6Y3MuiyT4vUsnFEqTklAE3+83i7iUGGxkBxvmrNWM'), --Ch43wTRY
+('Hugh.Jackman', 'ACTIVE', '$argon2id$v=19$m=16384,t=2,p=1$tvHWuq6M+W3i7Dnl4TLCvA$YG7TQ943vg9BYAgCSI1IBQiHgVR//lhDF/aKmTtkg3w'), --Lipton
+('Evangeline.Lilly', 'ACTIVE', '$argon2id$v=19$m=16384,t=2,p=1$YffVrajwLh0RDQf2YUUrpg$deAQ4Apm70EiMcbjL4GrcmW6UZTJD3YU3PHC36H/YHU'); --RealSteel

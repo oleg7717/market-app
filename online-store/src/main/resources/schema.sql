@@ -1,4 +1,4 @@
-create schema if not exists market;
+CREATE SCHEMA if not exists market;
 
 CREATE TABLE if not exists items (
   id BIGSERIAL NOT NULL,
@@ -48,3 +48,15 @@ ALTER TABLE order_item DROP CONSTRAINT IF EXISTS order_item_order_id_fkey;
 ALTER TABLE order_item
     ADD CONSTRAINT order_item_order_id_fkey
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+
+CREATE TABLE if not exists users (
+   id BIGSERIAL NOT NULL,
+   user_name varchar(50) NOT NULL,
+   status varchar(10),
+   password varchar(255) NULL
+);
+
+CREATE TABLE if not exists authorities (
+   user_name varchar(50) NOT NULL,
+   authority varchar(255)
+);

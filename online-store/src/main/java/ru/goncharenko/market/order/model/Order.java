@@ -1,7 +1,5 @@
 package ru.goncharenko.market.order.model;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -23,6 +21,5 @@ public class Order {
 	@Column("total_sum")
 	private Double totalSum;
 
-	@Enumerated(EnumType.STRING)
 	private OrderStatus status;
 }
