@@ -15,7 +15,7 @@ on conflict do nothing;
 truncate carts restart identity cascade;
 insert into carts (user_name) values
 ('oleg'),
-('anonymous')
+('Hugh.Jackman')
 on conflict do nothing;
 
 truncate cart_item restart identity cascade;
@@ -30,12 +30,12 @@ on conflict do nothing;
 
 
 truncate orders restart identity cascade;
-insert into orders (total_sum, status) values
-(4600, 'ORDERED'),
-(115000, 'ORDERED'),
-(4600, 'ORDERED'),
-(64700, 'ORDERED'),
-(46900, 'ORDERED')
+insert into orders (user_name, total_sum, status) values
+('oleg', 4600, 'ORDERED'),
+('oleg', 115000, 'ORDERED'),
+('oleg', 4600, 'ORDERED'),
+('oleg', 64700, 'ORDERED'),
+('Hugh.Jackman', 46900, 'ORDERED')
 on conflict do nothing;
 
 

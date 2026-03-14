@@ -30,11 +30,15 @@ public class OrderController {
 	@GetMapping(path = "/{id}")
 	public Mono<Rendering> index(@PathVariable(name = "id") long id,
 	                             @RequestParam(name = "newOrder", required = false) String newOrder) {
-		Flux<OrderDTO> order = service.findById(id);
-		Rendering rendering = Rendering.view("order")
-				.modelAttribute("order", order.next())
-				.modelAttribute("newOrder", newOrder)
-				.build();
-		return Mono.just(rendering);
+		return service.findById(id)
+				.map(order -> Rendering.view("order")
+						.modelAttribute("order", order)
+						.modelAttribute("newOrder", newOrder)
+						.build()
+				)
+				.switchIfEmpty(Mono.just(Rendering.view("error/404")
+						.modelAttribute("message", "Заказ не найден")
+						.build()
+				));
 	}
 }

@@ -2,7 +2,6 @@ package ru.goncharenko.market.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +22,10 @@ import ru.goncharenko.market.payment.model.PaymentStatus;
 
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+import static org.springframework.http.HttpStatus.PAYMENT_REQUIRED;
+import static ru.goncharenko.market.core.ObjectsUtil.requireNonNullResult;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,7 +42,7 @@ public class PurchaseService {
 
 	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
 		return clientApi.defaultApi().apiBalanceGet(userName, orderAmount)
-				.map(PaymentStatus::getProcessed)
+				.map(requireNonNullResult(PaymentStatus::getProcessed))
 				.onErrorReturn(false);
 	}
 
@@ -51,7 +54,7 @@ public class PurchaseService {
 			payment.setUserName(userName);
 			payment.setOrderAmount(orderAmount);
 			return clientApi.defaultApi().apiBalancePost(payment).flatMapMany(response -> {
-				if (response.getProcessed()) {
+				if (requireNonNull(response.getProcessed())) {
 					Order newOrder = new Order();
 					newOrder.setTotalSum(orderAmount);
 					newOrder.setStatus(OrderStatus.ORDERED);
@@ -71,10 +74,10 @@ public class PurchaseService {
 								return orderItemRepository.saveAll(orderedItems)
 										.as(transactionalOperator::transactional)
 										.thenMany(cartRepository.deleteByUserName(userName))
-										.thenMany(orderService.findById(orderId));
+										.then(orderService.findById(orderId));
 							});
 				} else {
-					return Flux.error(new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED, "Платёж не осуществлён."));
+					return Flux.error(new ResponseStatusException(PAYMENT_REQUIRED, "Платёж не осуществлён."));
 				}
 			});
 		});
