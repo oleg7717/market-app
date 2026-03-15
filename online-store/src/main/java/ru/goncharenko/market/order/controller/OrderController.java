@@ -28,7 +28,7 @@ public class OrderController {
 	}
 
 	@GetMapping(path = "/{id}")
-	public Mono<Rendering> index(@PathVariable(name = "id") long id,
+	public Mono<Rendering> index(@PathVariable long id,
 	                             @RequestParam(name = "newOrder", required = false) String newOrder) {
 		return service.findById(id)
 				.map(order -> Rendering.view("order")

@@ -54,16 +54,17 @@ public class ItemController {
 			@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "5")
 			@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
-		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
-				Mono.just(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
-						request.getSearch() != null ? request.getSearch() : "",
-						sort,
-						pageNumber,
-						pageSize)));
+		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
+				.then(
+						Mono.just(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
+								request.getSearch() != null ? request.getSearch() : "",
+								sort,
+								pageNumber,
+								pageSize)));
 	}
 
 	@GetMapping(path = "/items/{id}")
-	public Mono<Rendering> index(@PathVariable(name = "id") long id) {
+	public Mono<Rendering> index(@PathVariable long id) {
 		return itemService.findItem(id)
 				.flatMap(item ->
 						Mono.just(Rendering.view("item")
@@ -84,7 +85,7 @@ public class ItemController {
 	}
 
 	@GetMapping(path = "/images/{filename:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public @ResponseBody byte[] getImage(@PathVariable(name = "filename") String filename) {
+	public @ResponseBody byte[] getImage(@PathVariable String filename) {
 		return fileService.download(filename);
 	}
 }
