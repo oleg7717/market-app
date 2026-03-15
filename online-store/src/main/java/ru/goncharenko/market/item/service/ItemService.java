@@ -89,14 +89,21 @@ public class ItemService {
 	}
 
 	public Mono<ItemInCartDTO> findItem(Long id) {
-		return cartService.getOrCreateCart()
-				.flatMap(cart -> findItemWithCount(cart.getId(), id))
-				.flatMap(count -> cacheService.findCachedItemById(id)
-						.map(cachedItem -> {
-							ItemInCartDTO dto = mapper.toItemInCart(cachedItem);
-							dto.count(count);
-							return dto;
-						}));
+		return securityUtils.getCurrentAuthentication().flatMap(authentication -> {
+					if (authentication instanceof AnonymousAuthenticationToken) {
+						return cacheService.findCachedItemById(id).map(mapper::toItemInCart);
+					}
+
+					return cartService.getOrCreateCart()
+							.flatMap(cart -> findItemWithCount(cart.getId(), id))
+							.flatMap(count -> cacheService.findCachedItemById(id)
+									.map(cachedItem -> {
+										ItemInCartDTO dto = mapper.toItemInCart(cachedItem);
+										dto.count(count);
+										return dto;
+									}));
+				}
+		);
 	}
 
 	private Mono<Integer> findItemWithCount(Long cartId, Long itemId) {

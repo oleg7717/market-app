@@ -21,9 +21,8 @@
                     </h2>
                     <a href="/orders" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
                     <a href="/cart/items" class="btn btn-secondary bi bi-cart4"> Корзина</a>
-                    <a href="/confirm-logout" class="btn btn-danger bi bi-box-arrow-right" sec:authorize="isAuthenticated()">
-                        Выход
-                    </a>
+                    <a href="/login" class="btn btn-primary bi bi-box-arrow-in-right" sec:authorize="isAnonymous()">Вход</a>
+                    <a href="/confirm-logout" class="btn btn-danger bi bi-box-arrow-right" sec:authorize="isAuthenticated()">Выход</a>
                 </div>
             </div>
         </div>
