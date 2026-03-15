@@ -28,7 +28,16 @@
         <div class="row p-2" th:each="item : ${items}">
             <div class="col">
                 <div class="card">
-                    <img class="p-2" th:src="${'/'+item.imgPath()}" alt="Нет изображения" width="300" height="300">
+                    <a th:href="@{/items/{id}(id=${item.id})}">
+                        <img th:if="${item.imgPath != null}"
+                             th:src="@{${item.imgPath}}"
+                             class="card-img-top" alt="Нет изображения"
+                             style="height: 300px; object-fit: cover;">
+                        <img th:unless="${item.imgPath != null}"
+                             src="/images/no-image.jpg"
+                             class="card-img-top" alt="Нет изображения"
+                             style="height: 300px; object-fit: cover;">
+                    </a>
                     <div class="card-body">
                         <h5 class="card-title" th:text="${item.title()}"></h5>
                         <h5>

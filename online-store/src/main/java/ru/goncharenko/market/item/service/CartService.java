@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.goncharenko.market.core.config.security.utils.SecurityUtils;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
@@ -21,17 +22,19 @@ public class CartService {
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
 	private final ItemCacheService cacheService;
+	private final SecurityUtils securityUtils;
 	private final CartItemMapper mapper;
-
-	private final String userName = "oleg";
 
 	@Transactional
 	public Mono<Cart> getOrCreateCart() {
-		return cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
-			Cart newCart = new Cart();
-			newCart.setUserName(userName);
-			return cartRepository.save(newCart);
-		}));
+		return securityUtils.getCurrentUsername()
+				.flatMap(userName ->
+						cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
+							Cart newCart = new Cart();
+							newCart.setUserName(userName);
+							return cartRepository.save(newCart);
+						}))
+				);
 	}
 
 	@Transactional

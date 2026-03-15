@@ -17,11 +17,11 @@ import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.CartItemRepository;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -69,40 +69,18 @@ public class ItemService {
 
 	private ListItemsDTO buildResponse(List<Item> items, Map<Long, Integer> counts,
 	                                   int page, int size, long total) {
-		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size);
+		List<ItemInCartDTO> itemsWithCounts = items.stream()
+				.map(item -> {
+					ItemInCartDTO dto = mapper.toItemInCart(item);
+					dto.count(counts.getOrDefault(item.getId(), 0));
+					return dto;
+				})
+				.collect(Collectors.toList());
 
 		return ListItemsDTO.builder()
-				.items(groupedItems)
+				.items(itemsWithCounts)
 				.paging(new Paging(page, size, page > 1, ((long) page * size) < total))
 				.build();
-	}
-
-	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size) {
-		int groupSize = Math.min(size, 3);
-		List<List<ItemInCartDTO>> result = new ArrayList<>();
-
-		for (int i = 0; i < items.size(); i += groupSize) {
-			int end = Math.min(i + groupSize, items.size());
-			List<ItemInCartDTO> group = new ArrayList<>();
-
-			for (int j = i; j < end; j++) {
-				Item item = items.get(j);
-				ItemInCartDTO dto = mapper.toItemInCart(item);
-				dto.count(counts.getOrDefault(item.getId(), 0));
-				group.add(dto);
-			}
-
-			while (group.size() < groupSize) {
-				ItemInCartDTO empty = new ItemInCartDTO();
-				empty.id(-1);
-				empty.count(0);
-				group.add(empty);
-			}
-
-			result.add(group);
-		}
-
-		return result;
 	}
 
 	public Mono<ItemInCartDTO> findItem(Long id) {
