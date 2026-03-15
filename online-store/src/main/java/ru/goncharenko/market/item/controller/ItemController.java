@@ -19,6 +19,8 @@ import ru.goncharenko.market.item.service.CartService;
 import ru.goncharenko.market.item.service.FileService;
 import ru.goncharenko.market.item.service.ItemService;
 
+import java.io.IOException;
+
 @Controller
 @Validated
 @RequiredArgsConstructor
@@ -85,7 +87,7 @@ public class ItemController {
 	}
 
 	@GetMapping(path = "/images/{filename:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public @ResponseBody byte[] getImage(@PathVariable String filename) {
+	public @ResponseBody byte[] getImage(@PathVariable String filename) throws IOException {
 		return fileService.download(filename);
 	}
 }
