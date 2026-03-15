@@ -16,6 +16,8 @@ import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.repository.CartItemRepository;
 import ru.goncharenko.market.item.repository.CartRepository;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -60,7 +62,12 @@ public class CartService {
 
 		return cacheService.loadItemsFromCache(context)
 				.flatMap(cachedItems -> {
-					if (!cachedItems.isEmpty() && cachedItems.size() == context.getItems().size()) {
+					boolean equals = cachedItems.size() == context.getItems().size()
+							&& cachedItems.keySet().equals(
+							context.getItems().stream()
+									.map(CartItem::getItemId)
+									.collect(Collectors.toSet()));
+					if (!cachedItems.isEmpty() && equals) {
 						return Mono.just(cachedItems);
 					}
 
