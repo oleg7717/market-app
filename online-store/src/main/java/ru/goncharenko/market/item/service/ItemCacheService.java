@@ -94,9 +94,12 @@ public class ItemCacheService {
 							));
 
 					return redisTemplate.opsForHash()
-							.putAll(cacheKey, stringKeyMap)
-							.thenReturn(itemsMap);
-
+							.delete(cacheKey)
+							.flatMap(bool ->
+									redisTemplate.opsForHash()
+											.putAll(cacheKey, stringKeyMap)
+											.thenReturn(itemsMap)
+							);
 				});
 	}
 
