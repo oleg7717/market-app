@@ -5,14 +5,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import ru.goncharenko.market.core.config.security.utils.SecurityUtils;
 import ru.goncharenko.market.core.response.Paging;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.item.mapper.CartItemMapper;
-import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.CartItemRepository;
@@ -29,24 +30,28 @@ public class ItemService {
 	private final ItemCacheService cacheService;
 	private final CartItemRepository cartItemRepository;
 	private final CartService cartService;
+	private final SecurityUtils securityUtils;
 	private final CartItemMapper mapper;
 	private final DatabaseClient databaseClient;
 
 	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size) {
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort.getFieldName()));
+		return cacheService.getItemsPage(search, pageable).flatMap(itemContext -> {
+			List<Item> items = itemContext.getItems();
+			long total = itemContext.getCount();
+			return securityUtils.getCurrentAuthentication()
+					.flatMap(authentication -> {
+								if (authentication instanceof AnonymousAuthenticationToken) {
+									return Mono.just(buildResponse(items, new HashMap<>(), page, size, total));
+								}
 
-		return Mono.zip(
-						cacheService.getItemsPage(search, pageable),
-						cartService.getOrCreateCart()
-				)
-				.flatMap(tuple -> {
-					List<Item> items = tuple.getT1().getItems();
-					long total = tuple.getT1().getCount();
-					Cart cart = tuple.getT2();
-
-					return getItemCounts(cart.getId(), items)
-							.map(counts -> buildResponse(items, counts, page, size, total));
-				});
+								return cartService.getOrCreateCart()
+										.flatMap(cart -> getItemCounts(cart.getId(), items)
+												.map(counts ->
+														buildResponse(items, counts, page, size, total)));
+							}
+					);
+		});
 	}
 
 	private Mono<Map<Long, Integer>> getItemCounts(Long cartId, List<Item> items) {

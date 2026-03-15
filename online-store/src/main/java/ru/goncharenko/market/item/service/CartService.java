@@ -2,6 +2,7 @@ package ru.goncharenko.market.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -27,20 +28,25 @@ public class CartService {
 
 	@Transactional
 	public Mono<Cart> getOrCreateCart() {
-		return securityUtils.getCurrentUsername()
-				.flatMap(userName ->
-						cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
+		return securityUtils.getCurrentAuthentication()
+				.flatMap(authentication -> {
+					if (!(authentication instanceof AnonymousAuthenticationToken)) {
+						String userName = authentication.getName();
+						return cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
 							Cart newCart = new Cart();
 							newCart.setUserName(userName);
 							return cartRepository.save(newCart);
-						}))
-				);
+						}));
+					}
+
+					return Mono.empty();
+				});
 	}
 
 	@Transactional
 	public Mono<CartDTO> getItemsInCart() {
 		return getOrCreateCart()
-				.flatMap(cart -> cartItemRepository.findAllByCartId(cart.getId())
+				.flatMap(cart -> cartItemRepository.findAllByCartIdOrderByItemId(cart.getId())
 						.collectList()
 						.map(items -> new CartContext(cart, items)))
 				.flatMap(this::enrichItemsWithDetails)
@@ -54,7 +60,7 @@ public class CartService {
 
 		return cacheService.loadItemsFromCache(context)
 				.flatMap(cachedItems -> {
-					if (!cachedItems.isEmpty()) {
+					if (!cachedItems.isEmpty() && cachedItems.size() == context.getItems().size()) {
 						return Mono.just(cachedItems);
 					}
 

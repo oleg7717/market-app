@@ -27,7 +27,7 @@ public class SecurityUtils {
 	public Mono<Authentication> getCurrentAuthentication() {
 		return ReactiveSecurityContextHolder.getContext()
 				.map(requireNonNullResult(SecurityContext::getAuthentication))
-				.doOnNext(auth -> log.info("Authentication: {}", auth))
+				.doOnNext(auth -> log.info("Authentication name: {}", auth.getName()))
 				.switchIfEmpty(Mono.error(new RuntimeException("No authentication found")));
 	}
 }
