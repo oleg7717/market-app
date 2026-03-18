@@ -72,7 +72,12 @@ public class ItemController {
 						Mono.just(Rendering.view("item")
 								.modelAttribute("item", item)
 								.build())
-				);
+				).onErrorResume(error -> Mono.just(Rendering.view("error/404")
+						.modelAttribute("message", "Товар не найден")
+						.modelAttribute("buttonText", "К списку товаров")
+						.modelAttribute("returnUrl", "/items")
+						.build()
+				));
 	}
 
 	@PostMapping(path = "/items/{id}")

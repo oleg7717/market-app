@@ -38,6 +38,8 @@ public class OrderController {
 				)
 				.switchIfEmpty(Mono.just(Rendering.view("error/404")
 						.modelAttribute("message", "Заказ не найден")
+						.modelAttribute("buttonText", "К списку заказов")
+						.modelAttribute("returnUrl", "/orders")
 						.build()
 				));
 	}
