@@ -1,8 +1,9 @@
 services:
+  #### Infrastructure ####
   postgres:
     image: postgres:15-alpine
     container_name: postgres_market_db
-    restart:  no
+    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,7 +18,7 @@ services:
   redis:
     image: redis:latest
     container_name: redis
-    restart: no
+    restart: always
     ports:
       - "6379:6379"
     volumes:
@@ -25,6 +26,46 @@ services:
     networks:
       - app-network
 
+  #### Security infrastructure ####
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.3
+    container_name: keycloak
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak_postgres_db:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8090:8080"
+    command: ["start-dev"]
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+      - security-network
+
+  keycloak-postgres:
+    image: postgres:15-alpine
+    container_name: keycloak_postgres_db
+    restart:  always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+    networks:
+      security-network:
+        aliases:
+          - keycloak-postgres
+
+
+  #### Services ####
   payment-service:
     build: ./payment-service
     image: payment-service:latest
@@ -65,10 +106,15 @@ services:
     networks:
       - app-network
 
+#### Networks ####
 networks:
   app-network:
     driver: bridge
+  security-network:
+    driver: bridge
 
+#### Volumes ####
 volumes:
   postgres_data:
   redis_data:
+  postgres_keycloak_data:
