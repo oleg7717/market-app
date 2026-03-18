@@ -1,10 +1,8 @@
 spring:
   application:
     name: market
-  r2dbc:
-    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=market
-    username: postgres
-    password: password
+  profiles:
+    active: dev
   jpa:
     show-sql: true
     hibernate:
