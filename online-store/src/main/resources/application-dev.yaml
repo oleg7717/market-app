@@ -17,3 +17,10 @@ spring:
             client-secret: 7m8s6YqpYvjtHWRm0up4G4NlEubiSGa7
             scope: profile
             clientAuthenticationMethod: client_secret_post # Способ передачи секрета
+
+logging:
+  level:
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql.QUERY: DEBUG
+    io.r2dbc.postgresql.PARAM: DEBUG
+    org.springframework.data.r2dbc: DEBUG
