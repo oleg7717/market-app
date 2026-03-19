@@ -1,5 +1,6 @@
 package ru.goncharenko.payment.config.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,6 +20,9 @@ import java.util.Map;
 @EnableWebFluxSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+	private String JwtIssuerUri;
+
 	@Bean
 	SecurityWebFilterChain securityFilterChain(ServerHttpSecurity security) {
 		return security
@@ -35,7 +39,7 @@ public class SecurityConfig {
 
 	@Bean
 	ReactiveJwtDecoder reactiveJwtDecoder() {
-		return ReactiveJwtDecoders.fromIssuerLocation("http://localhost:8090/realms/master");
+		return ReactiveJwtDecoders.fromIssuerLocation(JwtIssuerUri);
 	}
 
 	@Bean

@@ -75,6 +75,7 @@ services:
     ports:
       - "8081:8081"
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       # Liquibase переменные
       SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=payment
       SPRING_LIQUIBASE_USERNAME: ${POSTGRES_USER}
@@ -83,6 +84,8 @@ services:
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=payment
       SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
       SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
+      # Настройки сервера ресурсов для валидации токенов из keycloak
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8090/realms/master
     depends_on:
       - postgres
       - keycloak
