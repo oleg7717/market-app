@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost:8081
     description: Local development server
+  - url: http://payment-service:8081
+    description: Docker container network (internal)
 paths:
   /api/balance:
     get:
