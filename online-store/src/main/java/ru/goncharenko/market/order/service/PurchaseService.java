@@ -95,6 +95,7 @@ public class PurchaseService {
 						return paymentApi.apiBalancePost(payment).flatMapMany(response -> {
 							if (requireNonNull(response.getProcessed())) {
 								Order newOrder = new Order();
+								newOrder.setUserName(userName);
 								newOrder.setTotalSum(orderAmount);
 								newOrder.setStatus(OrderStatus.ORDERED);
 								return orderRepository.save(newOrder)
