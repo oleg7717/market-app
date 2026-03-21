@@ -3,7 +3,8 @@ package ru.goncharenko.payment.config.security;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 @Configuration
 @EnableWebFluxSecurity
-@EnableMethodSecurity
+@EnableReactiveMethodSecurity
 public class SecurityConfig {
 	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 	private String JwtIssuerUri;
@@ -27,6 +28,7 @@ public class SecurityConfig {
 	SecurityWebFilterChain securityFilterChain(ServerHttpSecurity security) {
 		return security
 				.authorizeExchange(exchanges -> exchanges
+						.pathMatchers(HttpMethod.GET, "/actuator/**").permitAll()
 						.anyExchange().authenticated()
 				)
 				.oauth2ResourceServer(oauth2 -> oauth2
