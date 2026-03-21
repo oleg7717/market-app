@@ -43,7 +43,8 @@ services:
       - "8090:8090"
     command: ["start-dev"]
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
     networks:
       - app-network
       - security-network
@@ -74,8 +75,10 @@ services:
     restart: no
     ports:
       - "8081:8081"
+      - "5005:5005"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       # Liquibase переменные
       SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres?currentSchema=payment
       SPRING_LIQUIBASE_USERNAME: ${POSTGRES_USER}
@@ -87,8 +90,10 @@ services:
       # Настройки сервера ресурсов для валидации токенов из keycloak
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8090/realms/master
     depends_on:
-      - postgres
-      - keycloak
+      postgres:
+        condition: service_started
+      keycloak:
+        condition: service_started
     networks:
       - app-network
 
@@ -99,8 +104,10 @@ services:
     restart: no
     ports:
       - "8080:8080"
+      - "5006:5006"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
       # Реактивное подключение к PostgreSQL
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/postgres?currentSchema=market
       SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
@@ -113,8 +120,10 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MARKET_CLIENT_SECRET: ${MARKET_CLIENT_SECRET}
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI: http://keycloak:8090/realms/master
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
     networks:
       - app-network
 
