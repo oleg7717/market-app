@@ -50,8 +50,7 @@ public class SecurityConfig {
 										}))
 						)
 				)
-				.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-				)
+				.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()))
 				.build();
 	}
 
