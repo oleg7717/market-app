@@ -2,6 +2,7 @@ package ru.goncharenko.market.item.controller;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -73,6 +74,7 @@ public class ItemController {
 								.modelAttribute("item", item)
 								.build())
 				).onErrorResume(error -> Mono.just(Rendering.view("error/404")
+						.status(HttpStatus.NOT_FOUND)
 						.modelAttribute("message", "Товар не найден")
 						.modelAttribute("buttonText", "К списку товаров")
 						.modelAttribute("returnUrl", "/items")

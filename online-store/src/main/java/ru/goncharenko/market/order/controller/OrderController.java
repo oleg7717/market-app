@@ -1,6 +1,7 @@
 package ru.goncharenko.market.order.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,7 @@ public class OrderController {
 						.build()
 				)
 				.switchIfEmpty(Mono.just(Rendering.view("error/404")
+						.status(HttpStatus.NOT_FOUND)
 						.modelAttribute("message", "Заказ не найден")
 						.modelAttribute("buttonText", "К списку заказов")
 						.modelAttribute("returnUrl", "/orders")
