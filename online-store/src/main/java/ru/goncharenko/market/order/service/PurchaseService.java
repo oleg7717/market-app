@@ -2,6 +2,7 @@ package ru.goncharenko.market.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -42,6 +43,7 @@ public class PurchaseService {
 	private final SecurityUtils securityUtils;
 	private final DefaultApi paymentApi;
 
+	@PreAuthorize("isFullyAuthenticated()")
 	public Mono<Boolean> isSufficientBalance(Double orderAmount) {
 		return securityUtils.getAuthorize()
 				.doOnSubscribe(sub -> log.info("Starting payment service call"))
@@ -82,6 +84,7 @@ public class PurchaseService {
 				});
 	}
 
+	@PreAuthorize("isFullyAuthenticated()")
 	public Flux<OrderDTO> makePayment() {
 		Mono<CartDTO> cartDTO = cartService.getItemsInCart();
 		return cartDTO.flatMapMany(itemsInCart -> securityUtils.getAuthorize()
