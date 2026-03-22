@@ -6,9 +6,9 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.goncharenko.market.config.TestSecurityConfig;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import({TestSecurityConfig.class})
-public abstract class SharedTestConfig {
+public abstract class SharedSecureConfig {
 	@MockitoBean
 	private ReactiveClientRegistrationRepository clientRegistrationRepository;
 }

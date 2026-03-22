@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @Import(EmbeddedRedisConfiguration.class)
-public class ItemCacheServiceTest extends SharedTestConfig {
+public class ItemCacheServiceTest extends SharedSecureConfig {
 	@Autowired
 	private ItemCacheService cacheService;
 
