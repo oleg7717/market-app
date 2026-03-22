@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -36,6 +37,7 @@ public class SecurityConfig {
 						.principal("anonymous")
 						.authorities("ROLE_GUEST")
 				)
+				.httpBasic(Customizer.withDefaults())
 				.formLogin(form -> form
 						.authenticationSuccessHandler((webFilterExchange, authentication) -> {
 							ServerWebExchange exchange = webFilterExchange.getExchange();
