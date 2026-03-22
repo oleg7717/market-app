@@ -5,7 +5,9 @@
 
    $ mvnw clean package
 
-2. Создать файл .env с настройками для docker-compose
+2. Настроить клиента в keycloak для межсервисного взаимодейсвтия
+
+3. Создать файл .env с настройками для docker-compose
 
    POSTGRES_DB: <db_name>
 
@@ -13,7 +15,15 @@
 
    POSTGRES_PASSWORD: <password> 
 
-3. Выполнить команду сборки и запуска docker контейнеров 
+   KEYCLOAK_ADMIN: <user_name>
+
+   KEYCLOAK_ADMIN_PASSWORD: <password>
+
+   MARKET_CLIENT_ID: <client-id>
+
+   MARKET_CLIENT_SECRET: <secret_key>
+
+4. Выполнить команду сборки и запуска docker контейнеров 
 
    $ docker compose up --build -d
 
