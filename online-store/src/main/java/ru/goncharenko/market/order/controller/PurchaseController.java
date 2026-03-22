@@ -16,8 +16,8 @@ public class PurchaseController {
 	private final PurchaseService service;
 
 	@GetMapping(path = "/buy")
-	public Mono<Boolean> buy(String userName, Double orderAmount) {
-		return service.isSufficientBalance(userName, orderAmount);
+	public Mono<Boolean> buy(Double orderAmount) {
+		return service.isSufficientBalance(orderAmount);
 	}
 
 	@PostMapping(path = "/buy")

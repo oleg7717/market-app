@@ -22,7 +22,7 @@ public class CartController {
 	@GetMapping(path = "/items")
 	public Mono<Rendering> show() {
 		return cartService.getItemsInCart()
-				.flatMap(cartDTO -> purchaseService.isSufficientBalance("oleg", cartDTO.getTotal())
+				.flatMap(cartDTO -> purchaseService.isSufficientBalance(cartDTO.getTotal())
 						.flatMap(response -> Mono.just(Rendering.view("cart")
 								.modelAttribute("items", cartDTO.getItems())
 								.modelAttribute("total", cartDTO.getTotal())
@@ -35,7 +35,7 @@ public class CartController {
 	public Mono<Rendering> changeItemsCountFromCart(@ModelAttribute ItemRequest request) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
 				cartService.getItemsInCart()
-						.flatMap(cartDTO -> purchaseService.isSufficientBalance("oleg", cartDTO.getTotal())
+						.flatMap(cartDTO -> purchaseService.isSufficientBalance(cartDTO.getTotal())
 								.flatMap(response -> Mono.just(Rendering.view("cart")
 										.modelAttribute("items", cartDTO.getItems())
 										.modelAttribute("total", cartDTO.getTotal())

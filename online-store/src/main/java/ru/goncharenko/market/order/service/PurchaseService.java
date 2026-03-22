@@ -42,16 +42,15 @@ public class PurchaseService {
 	private final SecurityUtils securityUtils;
 	private final DefaultApi paymentApi;
 
-	private final String userName = "oleg";
-
-	public Mono<Boolean> isSufficientBalance(String userName, Double orderAmount) {
+	public Mono<Boolean> isSufficientBalance(Double orderAmount) {
 		return securityUtils.getAuthorize()
 				.doOnSubscribe(sub -> log.info("Starting payment service call"))
 				.doOnSuccess(token -> log.info("Token obtained successfully"))
 				.doOnError(error -> log.error("Failed to obtain token", error))
 				.flatMap(client -> {
 					securityUtils.setToken(client, paymentApi);
-					return paymentApi.apiBalanceGet(userName, orderAmount)
+					return securityUtils.getCurrentUsername().flatMap(userName -> paymentApi
+							.apiBalanceGet(userName, orderAmount)
 							.doOnSubscribe(sub -> log.debug("API request subscribed"))
 							.doOnSuccess(response -> {
 								log.info("=== RESPONSE RECEIVED ===");
@@ -79,49 +78,49 @@ public class PurchaseService {
 							.map(requireNonNullResult(PaymentStatus::getProcessed))
 							.doOnSuccess(processed -> log.info("Mapped result to processed={}", processed))
 							.doOnError(error -> log.error("Error mapping response", error))
-							.onErrorReturn(false);
+							.onErrorReturn(false));
 				});
 	}
 
 	public Flux<OrderDTO> makePayment() {
 		Mono<CartDTO> cartDTO = cartService.getItemsInCart();
-		return cartDTO.flatMapMany(itemsInCart -> {
-			Double orderAmount = itemsInCart.getTotal();
-			Payment payment = new Payment();
-			payment.setUserName(userName);
-			payment.setOrderAmount(orderAmount);
-			return securityUtils.getAuthorize().flatMapMany(client -> {
-						securityUtils.setToken(client, paymentApi);
-						return paymentApi.apiBalancePost(payment).flatMapMany(response -> {
-							if (requireNonNull(response.getProcessed())) {
-								Order newOrder = new Order();
-								newOrder.setUserName(userName);
-								newOrder.setTotalSum(orderAmount);
-								newOrder.setStatus(OrderStatus.ORDERED);
-								return orderRepository.save(newOrder)
-										.flatMapMany(order -> {
-											Long orderId = order.getId();
-											List<OrderItem> orderedItems = itemsInCart.getItems().stream()
-													.map(item -> {
-														OrderItem orderItem = new OrderItem();
-														orderItem.setItemId(item.id());
-														orderItem.setOrderId(orderId);
-														orderItem.setCount(item.count());
-														return orderItem;
-													})
-													.toList();
+		return cartDTO.flatMapMany(itemsInCart -> securityUtils.getAuthorize()
+				.flatMapMany(client -> securityUtils.getCurrentUsername()
+						.flatMapMany(userName -> {
+									Double orderAmount = itemsInCart.getTotal();
+									Payment payment = new Payment();
+									payment.setUserName(userName);
+									payment.setOrderAmount(orderAmount);
+									return paymentApi.apiBalancePost(payment).flatMapMany(response -> {
+										if (requireNonNull(response.getProcessed())) {
+											Order newOrder = new Order();
+											newOrder.setUserName(userName);
+											newOrder.setTotalSum(orderAmount);
+											newOrder.setStatus(OrderStatus.ORDERED);
+											return orderRepository.save(newOrder)
+													.flatMapMany(order -> {
+														Long orderId = order.getId();
+														List<OrderItem> orderedItems = itemsInCart.getItems().stream()
+																.map(item -> {
+																	OrderItem orderItem = new OrderItem();
+																	orderItem.setItemId(item.id());
+																	orderItem.setOrderId(orderId);
+																	orderItem.setCount(item.count());
+																	return orderItem;
+																})
+																.toList();
 
-											return orderItemRepository.saveAll(orderedItems)
-													.as(transactionalOperator::transactional)
-													.thenMany(cartRepository.deleteByUserName(userName))
-													.then(orderService.findById(orderId));
-										});
-							} else {
-								return Flux.error(new ResponseStatusException(PAYMENT_REQUIRED, "Платёж не осуществлён."));
-							}
-						});
-					}
-			);
-		});
+														return orderItemRepository.saveAll(orderedItems)
+																.as(transactionalOperator::transactional)
+																.thenMany(cartRepository.deleteByUserName(userName))
+																.then(orderService.findById(orderId));
+													});
+										} else {
+											return Flux.error(new ResponseStatusException(PAYMENT_REQUIRED, "Платёж не осуществлён."));
+										}
+									});
+								}
+						)
+				));
 	}
 }
