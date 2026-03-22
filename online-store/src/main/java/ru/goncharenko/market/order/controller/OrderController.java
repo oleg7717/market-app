@@ -2,6 +2,7 @@ package ru.goncharenko.market.order.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ public class OrderController {
 	private final OrderService service;
 
 	@GetMapping()
+	@PreAuthorize("isAuthenticated()")
 	public Mono<Rendering> index() {
 		Flux<OrderDTO> orders = service.getAllOrders();
 		Rendering rendering = Rendering.view("orders")
@@ -29,6 +31,7 @@ public class OrderController {
 	}
 
 	@GetMapping(path = "/{id}")
+	@PreAuthorize("isAuthenticated()")
 	public Mono<Rendering> index(@PathVariable long id,
 	                             @RequestParam(name = "newOrder", required = false) String newOrder) {
 		return service.findById(id)

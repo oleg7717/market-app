@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @AutoConfigureWebTestClient
@@ -38,19 +39,19 @@ public class UserSecureTest extends SharedSecureConfig {
 	}
 
 	@Test
+	@WithMockUser(username = "Hugh.Jackman")
 	public void shouldAccessToSecureEndpointForValidUser() {
 		webTestClient.get()
 				.uri("/orders")
-				.headers(headers -> headers.setBasicAuth("Hugh.Jackman", "Lipton"))
 				.exchange()
 				.expectStatus().isOk();
 	}
 
 	@Test
+	@WithMockUser(username = "Hugh.Jackman")
 	public void notFoundPageForValidUserWithNoAccessToOrder() {
 		webTestClient.get()
 				.uri("/orders/4")
-				.headers(headers -> headers.setBasicAuth("Hugh.Jackman", "Lipton"))
 				.exchange()
 				.expectStatus().isNotFound();
 	}

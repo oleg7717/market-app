@@ -1,6 +1,7 @@
 package ru.goncharenko.market.item.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -20,6 +21,7 @@ public class CartController {
 	private final PurchaseService purchaseService;
 
 	@GetMapping(path = "/items")
+	@PreAuthorize("isAuthenticated()")
 	public Mono<Rendering> show() {
 		return cartService.getItemsInCart()
 				.flatMap(cartDTO -> purchaseService.isSufficientBalance(cartDTO.getTotal())
@@ -32,6 +34,7 @@ public class CartController {
 	}
 
 	@PostMapping(path = "/items")
+	@PreAuthorize("isAuthenticated()")
 	public Mono<Rendering> changeItemsCountFromCart(@ModelAttribute ItemRequest request) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
 				cartService.getItemsInCart()
