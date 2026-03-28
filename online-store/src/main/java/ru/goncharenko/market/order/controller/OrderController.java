@@ -1,6 +1,8 @@
 package ru.goncharenko.market.order.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ public class OrderController {
 	private final OrderService service;
 
 	@GetMapping()
+	@PreAuthorize("isAuthenticated()")
 	public Mono<Rendering> index() {
 		Flux<OrderDTO> orders = service.getAllOrders();
 		Rendering rendering = Rendering.view("orders")
@@ -28,13 +31,21 @@ public class OrderController {
 	}
 
 	@GetMapping(path = "/{id}")
-	public Mono<Rendering> index(@PathVariable(name = "id") long id,
+	@PreAuthorize("isAuthenticated()")
+	public Mono<Rendering> index(@PathVariable long id,
 	                             @RequestParam(name = "newOrder", required = false) String newOrder) {
-		Flux<OrderDTO> order = service.findById(id);
-		Rendering rendering = Rendering.view("order")
-				.modelAttribute("order", order.next())
-				.modelAttribute("newOrder", newOrder)
-				.build();
-		return Mono.just(rendering);
+		return service.findById(id)
+				.map(order -> Rendering.view("order")
+						.modelAttribute("order", order)
+						.modelAttribute("newOrder", newOrder)
+						.build()
+				)
+				.switchIfEmpty(Mono.just(Rendering.view("error/404")
+						.status(HttpStatus.NOT_FOUND)
+						.modelAttribute("message", "Заказ не найден")
+						.modelAttribute("buttonText", "К списку заказов")
+						.modelAttribute("returnUrl", "/orders")
+						.build()
+				));
 	}
 }

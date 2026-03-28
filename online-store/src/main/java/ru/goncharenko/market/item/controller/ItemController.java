@@ -2,6 +2,7 @@ package ru.goncharenko.market.item.controller;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -12,14 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemRequest;
 import ru.goncharenko.market.item.service.CartService;
 import ru.goncharenko.market.item.service.FileService;
-import ru.goncharenko.market.item.service.ImageUrlBuilder;
 import ru.goncharenko.market.item.service.ItemService;
+
+import java.io.IOException;
 
 @Controller
 @Validated
@@ -28,7 +29,6 @@ public class ItemController {
 	private final ItemService itemService;
 	private final CartService cartService;
 	private final FileService fileService;
-	private final ImageUrlBuilder imageUrlBuilder;
 
 	@GetMapping(path = {"/items", ""})
 	public Mono<Rendering> show(
@@ -37,10 +37,8 @@ public class ItemController {
 			@RequestParam(name = "pageNumber", defaultValue = "1")
 			@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "5")
-			@Min(value = 1, message = "Page size should be more then 1.") int pageSize,
-			ServerWebExchange exchange) {
+			@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
 		return itemService.getItems(search, sort, pageNumber, pageSize)
-				.map(items -> imageUrlBuilder.enrichWithImageUrls(items, exchange))
 				.flatMap(item ->
 						Mono.just(Rendering.view("items")
 								.modelAttribute("items", item.getItems()).
@@ -59,37 +57,36 @@ public class ItemController {
 			@Min(value = 1, message = "Page number should be more then 1.") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "5")
 			@Min(value = 1, message = "Page size should be more then 1.") int pageSize) {
-		return cartService.changeItemsCountFromCart(request.getId(), request.getAction()).then(
-				Mono.just(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
-						request.getSearch() != null ? request.getSearch() : "",
-						sort,
-						pageNumber,
-						pageSize)));
+		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
+				.then(
+						Mono.just(String.format("redirect:/items?search=%s&sort=%s&pageNumber=%d&pageSize=%d",
+								request.getSearch() != null ? request.getSearch() : "",
+								sort,
+								pageNumber,
+								pageSize)));
 	}
 
 	@GetMapping(path = "/items/{id}")
-	public Mono<Rendering> index(@PathVariable(name = "id") long id, ServerWebExchange exchange) {
+	public Mono<Rendering> index(@PathVariable long id) {
 		return itemService.findItem(id)
-				.map(item -> {
-					item.imgPath(imageUrlBuilder.buildImageUrl(item.imgPath(), exchange));
-					return item;
-				}).flatMap(item ->
+				.flatMap(item ->
 						Mono.just(Rendering.view("item")
 								.modelAttribute("item", item)
 								.build())
-				);
+				).onErrorResume(error -> Mono.just(Rendering.view("error/404")
+						.status(HttpStatus.NOT_FOUND)
+						.modelAttribute("message", "Товар не найден")
+						.modelAttribute("buttonText", "К списку товаров")
+						.modelAttribute("returnUrl", "/items")
+						.build()
+				));
 	}
 
 	@PostMapping(path = "/items/{id}")
-	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request,
-	                                                     ServerWebExchange exchange) {
+	public Mono<Rendering> changeItemCountInCartFromItem(@ModelAttribute ItemRequest request) {
 		return cartService.changeItemsCountFromCart(request.getId(), request.getAction())
 				.then(itemService.findItem(request.getId())
-						.map(item -> {
-							// Обогащаем DTO URL изображения в контроллере
-							item.imgPath(imageUrlBuilder.buildImageUrl(item.imgPath(), exchange));
-							return item;
-						}).flatMap(item ->
+						.flatMap(item ->
 								Mono.just(Rendering.view("item")
 										.modelAttribute("item", item)
 										.build())
@@ -97,7 +94,7 @@ public class ItemController {
 	}
 
 	@GetMapping(path = "/images/{filename:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public @ResponseBody byte[] getImage(@PathVariable(name = "filename") String filename) {
+	public @ResponseBody byte[] getImage(@PathVariable String filename) throws IOException {
 		return fileService.download(filename);
 	}
 }

@@ -6,11 +6,15 @@ info:
 servers:
   - url: http://localhost:8081
     description: Local development server
+  - url: http://payment-service:8081
+    description: Docker container network (internal)
 paths:
   /api/balance:
     get:
       summary: Подтверждение баланса пользователя
       description: Получить подтверждение, что на балансе пользователя достаточно средств для осуществления покупки
+      security:
+        - bearerAuth: []
       parameters:
         - name: userName
           description: Логин пользователя
@@ -37,6 +41,8 @@ paths:
     post:
       summary: Осуществление платежа
       description: Осуществление платежа
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -50,7 +56,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaymentStatus'
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен, полученный от Keycloak через Client Credentials flow
   schemas:
     PaymentStatus:
       type: object

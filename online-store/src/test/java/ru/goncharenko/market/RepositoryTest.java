@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RepositoryTest extends IntegrationTest {
+public class RepositoryTest extends SharedSecureConfig {
 	@Autowired
 	private ItemRepository itemRepository;
 

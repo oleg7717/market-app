@@ -5,23 +5,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import ru.goncharenko.market.core.config.security.utils.SecurityUtils;
 import ru.goncharenko.market.core.response.Paging;
 import ru.goncharenko.market.core.types.SortEnum;
 import ru.goncharenko.market.item.dto.ItemInCartDTO;
 import ru.goncharenko.market.item.dto.ListItemsDTO;
 import ru.goncharenko.market.item.mapper.CartItemMapper;
-import ru.goncharenko.market.item.model.Cart;
 import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.model.Item;
 import ru.goncharenko.market.item.repository.CartItemRepository;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,24 +30,28 @@ public class ItemService {
 	private final ItemCacheService cacheService;
 	private final CartItemRepository cartItemRepository;
 	private final CartService cartService;
+	private final SecurityUtils securityUtils;
 	private final CartItemMapper mapper;
 	private final DatabaseClient databaseClient;
 
 	public Mono<ListItemsDTO> getItems(String search, SortEnum sort, int page, int size) {
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort.getFieldName()));
+		return cacheService.getItemsPage(search, pageable).flatMap(itemContext -> {
+			List<Item> items = itemContext.getItems();
+			long total = itemContext.getCount();
+			return securityUtils.getCurrentAuthentication()
+					.flatMap(authentication -> {
+								if (authentication instanceof AnonymousAuthenticationToken) {
+									return Mono.just(buildResponse(items, new HashMap<>(), page, size, total));
+								}
 
-		return Mono.zip(
-						cacheService.getItemsPage(search, pageable),
-						cartService.getOrCreateCart()
-				)
-				.flatMap(tuple -> {
-					List<Item> items = tuple.getT1().getItems();
-					long total = tuple.getT1().getCount();
-					Cart cart = tuple.getT2();
-
-					return getItemCounts(cart.getId(), items)
-							.map(counts -> buildResponse(items, counts, page, size, total));
-				});
+								return cartService.getOrCreateCart()
+										.flatMap(cart -> getItemCounts(cart.getId(), items)
+												.map(counts ->
+														buildResponse(items, counts, page, size, total)));
+							}
+					);
+		});
 	}
 
 	private Mono<Map<Long, Integer>> getItemCounts(Long cartId, List<Item> items) {
@@ -69,51 +74,36 @@ public class ItemService {
 
 	private ListItemsDTO buildResponse(List<Item> items, Map<Long, Integer> counts,
 	                                   int page, int size, long total) {
-		List<List<ItemInCartDTO>> groupedItems = groupItems(items, counts, size);
+		List<ItemInCartDTO> itemsWithCounts = items.stream()
+				.map(item -> {
+					ItemInCartDTO dto = mapper.toItemInCart(item);
+					dto.count(counts.getOrDefault(item.getId(), 0));
+					return dto;
+				})
+				.collect(Collectors.toList());
 
 		return ListItemsDTO.builder()
-				.items(groupedItems)
+				.items(itemsWithCounts)
 				.paging(new Paging(page, size, page > 1, ((long) page * size) < total))
 				.build();
 	}
 
-	private List<List<ItemInCartDTO>> groupItems(List<Item> items, Map<Long, Integer> counts, int size) {
-		int groupSize = Math.min(size, 3);
-		List<List<ItemInCartDTO>> result = new ArrayList<>();
-
-		for (int i = 0; i < items.size(); i += groupSize) {
-			int end = Math.min(i + groupSize, items.size());
-			List<ItemInCartDTO> group = new ArrayList<>();
-
-			for (int j = i; j < end; j++) {
-				Item item = items.get(j);
-				ItemInCartDTO dto = mapper.toItemInCart(item);
-				dto.count(counts.getOrDefault(item.getId(), 0));
-				group.add(dto);
-			}
-
-			while (group.size() < groupSize) {
-				ItemInCartDTO empty = new ItemInCartDTO();
-				empty.id(-1);
-				empty.count(0);
-				group.add(empty);
-			}
-
-			result.add(group);
-		}
-
-		return result;
-	}
-
 	public Mono<ItemInCartDTO> findItem(Long id) {
-		return cartService.getOrCreateCart()
-				.flatMap(cart -> findItemWithCount(cart.getId(), id))
-				.flatMap(count -> cacheService.findCachedItemById(id)
-						.map(cachedItem -> {
-							ItemInCartDTO dto = mapper.toItemInCart(cachedItem);
-							dto.count(count);
-							return dto;
-						}));
+		return securityUtils.getCurrentAuthentication().flatMap(authentication -> {
+					if (authentication instanceof AnonymousAuthenticationToken) {
+						return cacheService.findCachedItemById(id).map(mapper::toItemInCart);
+					}
+
+					return cartService.getOrCreateCart()
+							.flatMap(cart -> findItemWithCount(cart.getId(), id))
+							.flatMap(count -> cacheService.findCachedItemById(id)
+									.map(cachedItem -> {
+										ItemInCartDTO dto = mapper.toItemInCart(cachedItem);
+										dto.count(count);
+										return dto;
+									}));
+				}
+		);
 	}
 
 	private Mono<Integer> findItemWithCount(Long cartId, Long itemId) {

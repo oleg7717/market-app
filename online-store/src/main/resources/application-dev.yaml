@@ -1,0 +1,30 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=market
+    username: postgres
+    password: password
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8090/realms/master # Адрес сервера авторизации для получения токена
+        registration:
+          market: # Описание клиента OAuth2
+            provider: keycloak
+            authorizationGrantType: client_credentials
+            client-id: online-store-test
+            client-secret: 7m8s6YqpYvjtHWRm0up4G4NlEubiSGa7
+            scope: profile
+            clientAuthenticationMethod: client_secret_post # Способ передачи секрета
+
+application:
+  webClient:
+    baseUrl: http://localhost:8081
+
+logging:
+  level:
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql.QUERY: DEBUG
+    io.r2dbc.postgresql.PARAM: DEBUG
+    org.springframework.data.r2dbc: DEBUG

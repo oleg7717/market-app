@@ -2,9 +2,11 @@ package ru.goncharenko.market.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.goncharenko.market.core.config.security.utils.SecurityUtils;
 import ru.goncharenko.market.core.types.ActionEnum;
 import ru.goncharenko.market.item.dto.CartContext;
 import ru.goncharenko.market.item.dto.CartDTO;
@@ -14,6 +16,8 @@ import ru.goncharenko.market.item.model.CartItem;
 import ru.goncharenko.market.item.repository.CartItemRepository;
 import ru.goncharenko.market.item.repository.CartRepository;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,23 +25,30 @@ public class CartService {
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
 	private final ItemCacheService cacheService;
+	private final SecurityUtils securityUtils;
 	private final CartItemMapper mapper;
-
-	private final String userName = "oleg";
 
 	@Transactional
 	public Mono<Cart> getOrCreateCart() {
-		return cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
-			Cart newCart = new Cart();
-			newCart.setUserName(userName);
-			return cartRepository.save(newCart);
-		}));
+		return securityUtils.getCurrentAuthentication()
+				.flatMap(authentication -> {
+					if (!(authentication instanceof AnonymousAuthenticationToken)) {
+						String userName = authentication.getName();
+						return cartRepository.findCartByUserName(userName).switchIfEmpty(Mono.defer(() -> {
+							Cart newCart = new Cart();
+							newCart.setUserName(userName);
+							return cartRepository.save(newCart);
+						}));
+					}
+
+					return Mono.empty();
+				});
 	}
 
 	@Transactional
 	public Mono<CartDTO> getItemsInCart() {
 		return getOrCreateCart()
-				.flatMap(cart -> cartItemRepository.findAllByCartId(cart.getId())
+				.flatMap(cart -> cartItemRepository.findAllByCartIdOrderByItemId(cart.getId())
 						.collectList()
 						.map(items -> new CartContext(cart, items)))
 				.flatMap(this::enrichItemsWithDetails)
@@ -51,7 +62,12 @@ public class CartService {
 
 		return cacheService.loadItemsFromCache(context)
 				.flatMap(cachedItems -> {
-					if (!cachedItems.isEmpty()) {
+					boolean equals = cachedItems.size() == context.getItems().size()
+							&& cachedItems.keySet().equals(
+							context.getItems().stream()
+									.map(CartItem::getItemId)
+									.collect(Collectors.toSet()));
+					if (!cachedItems.isEmpty() && equals) {
 						return Mono.just(cachedItems);
 					}
 

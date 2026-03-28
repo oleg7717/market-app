@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Builder
 public class ListItemsDTO implements ApiResponse {
-	private List<List<ItemInCartDTO>> items;
+	private List<ItemInCartDTO> items;
 	private Paging paging;
 }
 

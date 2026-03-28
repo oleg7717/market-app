@@ -1,26 +1,26 @@
-create schema if not exists market;
+CREATE SCHEMA if not exists market;
 
 CREATE TABLE if not exists items (
   id BIGSERIAL NOT NULL,
-  title varchar(50) NOT NULL,
-  description varchar(255) NULL,
-  img_path varchar(255) NULL,
-  price double precision NULL,
+  title VARCHAR(50) NOT NULL,
+  description VARCHAR(255) NULL,
+  img_path VARCHAR(255) NULL,
+  price DOUBLE PRECISION NULL,
   CONSTRAINT items_pkey PRIMARY KEY (id),
   CONSTRAINT items_title_unique UNIQUE (title)
 );
 
-CREATE TABLE if not exists carts (
+CREATE TABLE IF NOT EXISTS carts (
   id BIGSERIAL NOT NULL,
-  user_name varchar(50) NOT NULL,
+  user_name VARCHAR(50) NOT NULL,
   CONSTRAINT carts_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE if not exists cart_item (
+CREATE TABLE IF NOT EXISTS cart_item (
   id BIGSERIAL NOT NULL,
   item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
   cart_id BIGINT NOT NULL,
-  count int8 NULL,
+  count INT8 NULL,
   CONSTRAINT cart_item_pkey PRIMARY KEY (item_id, cart_id)
 );
 
@@ -29,14 +29,15 @@ ALTER TABLE cart_item
     ADD CONSTRAINT cart_item_cart_id_fkey
         FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE;
 
-CREATE TABLE if not exists orders (
+CREATE TABLE IF NOT EXISTS orders (
    id BIGSERIAL NOT NULL,
-   total_sum double precision NOT NULL,
-   status varchar(10) NOT NULL DEFAULT 'NEW',
+   user_name VARCHAR(50) NOT NULL,
+   total_sum DOUBLE PRECISION NOT NULL,
+   status VARCHAR(10) NOT NULL DEFAULT 'NEW',
    CONSTRAINT orders_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE if not exists order_item (
+CREATE TABLE IF NOT EXISTS order_item (
    id BIGSERIAL NOT NULL,
    order_id BIGINT NOT NULL,
    item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
@@ -48,3 +49,15 @@ ALTER TABLE order_item DROP CONSTRAINT IF EXISTS order_item_order_id_fkey;
 ALTER TABLE order_item
     ADD CONSTRAINT order_item_order_id_fkey
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS users (
+   id BIGSERIAL NOT NULL,
+   user_name VARCHAR(50) NOT NULL,
+   status VARCHAR(10),
+   password VARCHAR(255) NULL
+);
+
+CREATE TABLE if not exists authorities (
+   user_name VARCHAR(50) NOT NULL,
+   authority VARCHAR(255)
+);
